@@ -10,8 +10,12 @@ end
 #==# ϕ = 1.0                                                                                                         #==#
 #==# seedMC = 0                                                                                                      #==#
 #==# continueEval = basicContinueEval # don't forget to include your .jl if you use your continueEval julia function #==#
+#==# AnyParamForContinueEvalFunction = ""                                                                            #==#
 #==# instance = 1                                                                                                    #==#
 #==# loggingTime = "false"                                                                                           #==#
+#==# N_MC_trials_per_interReturn = 1000                                                                              #==#
+#==# halfTrialsReturn = true                                                                                         #==#
+#==# N_MC_trials = 10000                                                                                             #==#
 #==###################################################################################################################==#
 #=======================================================================================================================#
 #########################################################################################################################
@@ -54,8 +58,12 @@ elseif length(ARGS) == 2
                     end
                     global seedMC = Int(round(parse(Float64, splitLine[2])))
                 elseif splitLine[1] == "continueEval"
-                    global pathToContinueEvaljlFile = splitLine[2]
-                    global continueEval_name = splitLine[3]
+                    if length(splitLine) == 3
+                        global pathToContinueEvaljlFile = splitLine[2]
+                        global continueEval_name = splitLine[3]
+                    end
+                elseif splitLine[1] == "AnyParamForContinueEvalFunction"
+                    global AnyParamForContinueEvalFunction = join(splitLine[2:end], " ")
                 elseif splitLine[1] == "instance"
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                         @warn "The value of the instance was not integer in the ARGS_FILE, it was rounded"
@@ -67,8 +75,26 @@ elseif length(ARGS) == 2
                     elseif contains(splitLine[2], ".txt")
                         global loggingTime = splitLine[2]
                     else
-                        global loggingTime = false
+                        global loggingTime = "false"
                         @warn "The value entered for the loggingTime argument was not of a type asked, it was considered as \"false\""
+                    end
+                elseif splitLine[1] == "N_MC_trials_per_interReturn"
+                    if parse(Float64, splitLine[2]) % 1 > 10^(-20)
+                        @warn "The value of N_MC_trials_per_interReturn was not integer in the ARGS_FILE, it was rounded"
+                    end
+                    global N_MC_trials_per_interReturn = Int64(round(parse(Float64, splitLine[2])))
+                elseif splitLine[1] == "halfTrialsReturn"
+                    if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
+                        global halfTrialsReturn = parse(Bool, splitLine[2])
+                    else
+                        global halfTrialsReturn = true
+                        @warn "The value entered for the halfTrialsReturn argument was not of a type asked, it was considered as true"
+                    end
+                elseif splitLine[1] == "N_MC_trials"
+                    if parse(Float64, splitLine[2]) % 1 > 10^(-20)
+                        @warn "The value of the N_MC_trials was not integer in the ARGS_FILE, it was put to default value 10000"
+                    else
+                        global N_MC_trials = parse(Int64, splitLine[2])
                     end
                 else 
                     @warn "did not recognize the argument \"$splitLine[1]\" in the ARGS_FILE, it was ignored"
@@ -92,7 +118,7 @@ elseif length(ARGS) == 2
     continueEval_symbol = Symbol(continueEval_name)
     continueEval = getfield(Main, continueEval_symbol)
 
-    println(MiniPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime)))
+    println(MiniPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction))
 else
     print(" \n \nTo run a simulation, there are three options. you can eighter : \n
 \t- type `\$MiniPRIAD_HOME/src/run.jl ARGS.txt x.txt` where the `ARGS.txt` contains the necessary information to call the blackbox or \n

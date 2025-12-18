@@ -34,7 +34,7 @@ julia $MINI_PRIAD_HOME/src/run.jl $MINI_PRIAD_HOME/Tests/instance=1/ex_ARGS.txt 
 ```
 The expected output of the line above, at least on Linux, is:
 ```
-1.0 8.366029399673888e7 -86.2108427279171 -133.34979556884016 -101.86803500570402 -2.7152453166949755 -18.998570154550002 -21.970726472939646 -46.44126470557973 -14.048589173281641 -45.02120170604803
+1.0 7.184947978900144e7 -13.931372811062861 -50.33689164210764 -48.61949009325899 -1.9950187673091335 -68.43028809560832 -0.8498347080821986 -12.469886182537323 -6.000486548195852 -2.4223759922109593
 ```
 > Note: The commands above work on Linux, but migth not work on other OS
 ## Execution
@@ -64,11 +64,12 @@ Simply call the MiniPRIAD Julia function direcly in a Julia sript if your solver
 ### Files formating
 The `ARGS.txt` file contains the same informations that you would need to define in Julia if you chose the execution option 2 or 3. It contains the folowing arguments and formated like in the `ex_ARGS.txt` files located in each folder in `$MINI_PRIAD_HOME/Tests` : 
 ```
-- fidelity: It is a reel number bounded by 0 and 1, 0 excluded that represent the output fidelity to the reality.
+- fidelity: It is a reel number bounded by 0 and 1, 0 excluded that represent the output fidelity to the reality (for each increment of 0.0001 in the fidelity, the BlackBox does 1 more MC trial).
 - seed: It is a integer number that represent the random seed used for Monte-Carlos trials.
 - instance: It is an integer that can take the values [1, 2, 3] to represent an instance number or any other integer to represent the home made instance that you can modify in the file `$MINI_PRIAD_HOME/src/Param.jl`. This argument control the type of electrical network used in the balckbox but does not chhange the number of constaint and does not affet the input length.
 - loggingTime: It is an argument that if specified to "false" does not do anything but if specified to a path, will create a timeLog file where each line of the .txt file represent the execution time of an iteration.
 - continueEval: It is a function that you can redefine in Julia that would replace the basic function implemented in Mini-PRIAD that always return true, this function is a function that takes is called often in the blackbox at different fidelity. It give to continueEval function intermediate value of the objective function and the constraint with the associated fidelity, this function then chose to interupte the blackbox iteration or let it continue. In the ARGS.txt file the path to the .jl file contaning the Julia function and the name of the Julia function need to be specified.
+- 
 ```
 All the argument have a default value, so you can choose to initialize only the arguments that you want the other argument(s) will take their default value.
 
@@ -79,23 +80,23 @@ input: It is the blackbox input of 28, 15 or 13 dimentions, including integer (I
 	- 15 dimention input: [R, R, R, R, R, R, R, R, R, R, R, R, R, R, R]
 	- 13 dimention input: [I, R, I, R, I, R, I, R, I, R, I, R, R]
 ```
-The `x.txt` file must contains only the numerical value of each variable seperated with spaces without "[", "," or "]", the `x0_feasible` and `x0_infeasible` folder contains good example of how to formate your `x.txt` file, you will find those files if you go as deep as you can in the `$MINI_PRIAD_HOME/Tests` directory.
+The `x.txt` file must contain only the numerical value of each variable seperated with spaces without "[", "," or "]", the `x0_feasible` and `x0_infeasible` folder contains good example of how to formate your `x.txt` file, you will find those files if you go as deep as you can in the `$MINI_PRIAD_HOME/Tests` directory.
 For all integer input the recommanded bounds are 1 and 9 and for all reel input the recommanded bounds are 0.1 and 10.0.
 
 ### Best objective function value found
 Here is the list of best know values o fthe objectiv function for the three instances with a default seed of zero:
 ```
-	instance 1 with 13 dimentions input		4.20778673132001e7
-	instance 1 with 15 dimentions input		7.79802325983361e7
-	instance 1 with 28 dimentions input		6.847921255200684e7
+	instance 1 with 13 dimentions input		4.208262675161164e7
+	instance 1 with 15 dimentions input		7.798771048891592e7
+	instance 1 with 28 dimentions input		6.848504620756665e7
 
-	instance 2 with 13 dimentions input		5.4629774672866955e7
-	instance 2 with 15 dimentions input		9.150163308358838e7
-	instance 2 with 28 dimentions input		8.887794290098089e7
+	instance 2 with 13 dimentions input		5.466134938448944e7 
+	instance 2 with 15 dimentions input		9.151043287090775e7
+	instance 2 with 28 dimentions input		8.888706619131872e7
 
-	instance 3 with 13 dimentions input	    1.848977266191032e8
-	instance 3 with 15 dimentions input		3.0263131066611975e8
-	instance 3 with 28 dimentions input		3.0263131066611975e8 * Update soon
+	instance 3 with 13 dimentions input	    1.8491753572367004e8
+	instance 3 with 15 dimentions input		3.0266521345379126e8
+	instance 3 with 28 dimentions input		3.0266521345379126e8 * Update soon
 ```
 The point associated to the best value found is alway in the `best_known_x.txt` file, you will find this file in the `$MINI_PRIAD_HOME/Tests` directory.
 
@@ -104,20 +105,19 @@ i : instance, l : input dimention's
 
 | Fidelity | 0.0001 | 0.001 | 0.01 | 0.1 | 1.0 |
 |---|---|---|---|---|---|
-| i = 1, l = 28 | 0.0089666 | 0.075328 | 0.71848 | 7.5145 | 75.046 |
-| i = 1, l = 15 | 0.0061965 | 0.040191 | 0.37905 | 3.7892 | 37.615 |
-| i = 1, l = 13 | 0.0061497 | 0.051503 | 0.50469 | 5.3260 | 51.868 |
-| i = 2, l = 28 | 0.0092652 | 0.075585 | 0.71900 | 7.5442 | 75.134 |
-| i = 2, l = 15 | 0.0057119 | 0.038639 | 0.37197 | 3.7925 | 37.643 |
-| i = 2, l = 13 | 0.0060498 | 0.050997 | 0.49749 | 5.1318 | 48.552 |
-| i = 3, l = 28 | 0.0119235 | 0.076195 | 0.71956 | 7.5451 | 75.192 |
-| i = 3, l = 15 | 0.0055236 | 0.038890 | 0.37317 | 3.8083 | 37.651 |
-| i = 3, l = 13 | 0.0066620 | 0.049283 | 0.47318 | 4.9368 | 48.945 |
+| i = 1, l = 28 | 0.0085305 | 0.078051 | 0.75515 | 7.9178 | 78.436 |
+| i = 1, l = 15 | 0.0054912 | 0.039521 | 0.37820 | 3.7865 | 37.567 |
+| i = 1, l = 13 | 0.0062914 | 0.051188 | 0.49332 | 4.8986 | 48.269 |
+| i = 2, l = 28 | 0.0057189 | 0.051059 | 0.52929 | 5.3566 | 53.642 |
+| i = 2, l = 15 | 0.010886  | 0.029335 | 0.31448 | 3.1499 | 33.208 |
+| i = 2, l = 13 | 0.0058945 | 0.047630 | 0.46206 | 4.6050 | 45.728 |
+| i = 3, l = 28 | 0.029528  | 0.078951 | 0.55276 | 5.2734 | 52.117 |
+| i = 3, l = 15 | 0.027286  | 0.055294 | 0.34625 | 3.1183 | 30.361 |
+| i = 3, l = 13 | 0.024307  | 0.044028 | 0.25869 | 2.2888 | 22.335 |
 
-
+The fidelity in this table represent the number of MC trials done for the evaluation of a point. fidelity = 0.0001 representing only one MC trials and fidelity = 1.0 representing 10000 MC trials.
 
 ### Other tools
-> Note : theese tools are still in devlopment, they will be updated soon on GitHub.
 
 In the `$MINI_PRIAD_HOME/Benchmarking_Tools` directory you will find different file that you can execute to run NOMAD, an LHS or a random search on each instance for each input length. To run those file you can respectivly type the following lines for each type of search.
 #### For NOMAD:
@@ -126,11 +126,14 @@ To use the folowing command, you need to have NOMAD on your computer and have th
 julia $MINI_PRIAD_HOME/Benchmarking_Tools/Run_NOMAD.jl $NOMAD_HOME
 ```
 > Note: You could also give manualy the full path instead of giving the environment variable `NOMAD_HOME` itself.
+
+The results of a previous lunch of "Run_NOMAD.jl" are in "NOMAD_results" folder.
 #### For latin hypercube sampling:
 To use the folowing command, you need to install the julia package "Surrogates" (see the section `Installing julia package "Surrogates"`).
 ```
 julia $MINI_PRIAD_HOME/Benchmarking_Tools/Run_LHS.jl
 ```
+The results of a previous lunch of "Run_LHS.jl" are in "LHS_results" folder. An other file "read_LHS.jl" is implemented to give some stat about the LHS. It can be run similarly to other .jl file.
 ##### Installing julia package "Surrogates"
 To install the package or can run the following lines in your terminal:
 ```

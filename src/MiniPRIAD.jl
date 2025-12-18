@@ -4,16 +4,11 @@ include("Initialisation.jl")
 include("UnavailabilitySimulator.jl")
 include("ElectricitySimulator.jl")
 include("RiskModule.jl")
+include("ContinueEvalFunctions.jl")
 
 #=
-the "basicContinueEval" function take a fidelity level vector, the objective function value and the constraint values and always return true, it is call to avoid dynamic interuption of the BB
-    Note: This function can be replaced by the user's function, you can do whetever that you want with the information given to the function to decide wether or not you continue the iteration
-    or not. Each element of the vector ϕ corespond to the fidelity level at which the value of the associated constraint or objective function of the vector FC was evaluated.
+the "checkInput" function check if the input given by the solver respect the input format, if not it print an error message
 =#
-function basicContinueEval(ϕ, FC)
-    return true
-end
-
 function checkInput(input)
     if length(input) == 28
         for i in [1, 3, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]
@@ -85,12 +80,15 @@ end
 The "MiniPRIAD" function is the heart of the black box, it links the initialization, the unavailability simulator, the electric simulator and the risk module to take a maintenance  periodicity vector "x" and return the objective function value and the constraints values "FFC".
 
 ######################################################## Input ###########################################################
-The "ϕ" is the blackbox fidelity and is contained from 0 to 1.
-The "seedMC" is the black box random seed used for the Monte-Carlo samples
-The "continueEval" is the function that control the intermidiate return of the function ant the constraints, it is initialize to "basicContinueEval" if not specified
-The "param" argument inicate which instance is used to initialize the network, it can be set eighter to an instance [1, 2, 3] or be set to anything else to lunch the BB with the custumized parameters
-The "loggingTime" argument indicate if the user want the program to print a "timeLog.txt" file with the running time of each itterations.
-The "x" is the maintenances periodicity, the coordinate the the solver can itteract with, it is deffined as follow :
+@Param ϕ: is the blackbox fidelity and is contained from 0 to 1.
+@Param seedMC: is the black box random seed used for the Monte-Carlo samples
+@Param continueEval: is the function that control the intermidiate return of the function ant the constraints, it is initialize to "basicContinueEval" if not specified
+@Param param: argument inicate which instance is used to initialize the network, it can be set eighter to an instance [1, 2, 3] or be set to anything else to lunch the BB with the custumized parameters
+@Param loggingTime: argument indicate if the user want the program to print a "timeLog.txt" file with the running time of each itterations.
+@Param N_MC_trials_per_interReturn: is the number of Monte-Carlo trials done at each intermidiate return of the black box, it is set to 1000 by default
+@Param halfTrialsReturn: is a boolean that indicate if there is an aditional intermediate return when half of the MC constraints are computed, it is set to true by default,
+     because between the first half and the second half of the constraints evaluation, there is a lot of time spent. it is even more true when N_MC_trials_per_interReturn is high.
+@Param x: is the maintenances periodicity, the coordinate the the solver can itteract with, it is deffined as follow :
 
 for 28 inputs : for 15 inputs : for 13 inputs :
      X[1]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for prod/HV transformators : of the prod/HV transformation stations : for the failure mecanism of the radiator obstruction
@@ -123,7 +121,7 @@ for 28 inputs : for 15 inputs : for 13 inputs :
      X[28]    :     X[15]     :     X[13]     : Float64 : maintenance periodicity                                                                         : for LV cables              : of the LV transporting lines           : for the failure mecanism of the copper theft        
 ###########################################################################################################################
 ######################################################## Output ###########################################################
-The "FFC" is  string that repressent a vector, it is deffined as that : [count_eval, f, C1, C2,...,C9], the string formating does not include the brackets nor the coma, it's the needed formating for NOMAD, each element of the cetor is deffined as follow : 
+@Return FFC: is  string that repressent a vector, it is deffined as that : [count_eval, f, C1, C2,...,C9], the string formating does not include the brackets nor the coma, it's the needed formating for NOMAD, each element of the cetor is deffined as follow : 
     FFC[1]  : count_eval : is a flag that indicat if the solver need to count this evaluation, in the case where an a priori constraints is violated, the eval is not couted ant this flag take the value 0 and the black box evaluation is stoped.
     FFC[2]  : f          : is the objective function value that represent the monatary cost caused by the choice of "x"
     FFC[3]  : C1         : is an analitical a priori constraint that control the number of maintenance over the 40 years
@@ -137,10 +135,11 @@ The "FFC" is  string that repressent a vector, it is deffined as that : [count_e
     FFC[11] : C9         : is a constraint that control the number of undelivered energy to hospital over 40 years
 ###########################################################################################################################
 =#
-function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Float64, seedMC::Int64,; continueEval::Function = basicContinueEval, param::Int64 = 1, loggingTime::String = "false")
+function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Float64, seedMC::Int64,; continueEval::Function = basicContinueEval, param::Int64 = 1, loggingTime::String = "false", N_MC_trials_per_interReturn::Int64 = 1000, halfTrialsReturn::Bool = true, N_MC_trials::Int64 = 10000, AnyParamForContinueEvalFunction = "")
     timer = 0.0
     clk = time()
 
+###################### checking for errors, and formating the problem depending on the input length #######################
     if typeof(input) == String
         input = split(input)
         input = parse.(Float64, input)
@@ -149,7 +148,8 @@ function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Flo
     FFC = [Inf for i in 1:11]
     x = Vector{Float64}(undef, 28)
 
-    if length(input) == 28
+    if length(input) == 28                
+
         checkInput(input)
         x = input 
         C1_2_3_4_6_7_8_9multiplier = 1.0
@@ -166,6 +166,12 @@ function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Flo
         return nothing
     end
 
+    if ϕ != trunc(ϕ, digits=4)
+        ϕ = trunc(ϕ, digits=4)
+        @warn "The fidelity ϕ was truncated to the 4th digits after the comma, ϕ = $ϕ"
+    end
+###########################################################################################################################
+
     nbVec = nbParam(param)
     T = periodicityCalculator(x)
     requiredTimeForMaintenances = MaintenancesParam(param)
@@ -177,7 +183,7 @@ function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Flo
         FFC[4] += C1_2_3_4_6_7_8_9multiplier * requiredTimeForMaintenances[i] * 40/T[i] * 0.715
     end
     
-    if (FFC[3] > 0 || FFC[4] > 0) || ϕ == 0.0
+    if (FFC[3] > 0 || FFC[4] > 0) || ϕ == 0.0 # A PRIORI Constraints check
         FFC[1] = 0.0
         
         #uncomment the one you need
@@ -211,27 +217,6 @@ function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Flo
     end
 #########################
 
-    if ϕ < 10^(-5)
-        #uncomment the one you need
-        #return FFC             # return a vector [count_eval, f, [C]]
-        str = join(FFC, " ")
-        return str             # return the same vector but as a string without "[", "]" or "," (used for NOMAD solver)
-
-
-    end
-
-    timer = time() - clk
-    ϕVec = [10^(-5) for i in 1:10]
-    if continueEval(ϕVec, FFC[2:11]) == false
-        logTime(timer, loggingTime)
-
-        #uncomment the one you need
-        #return FFC             # return a vector [count_eval, f, [C]]
-        str = join(FFC, " ")
-        return str             # return the same vector but as a string without "[", "]" or "," (used for NOMAD solver)
-    end
-    clk = time()
-
     stations = EquipmentInitialisation(T, nbVec, requiredTimeForMaintenances)
 ######## C5 ########
     FFC[7] = -500
@@ -252,7 +237,7 @@ function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Flo
     end
 ####################                
 
-    FFCT = UnavailSimulator(FFC, stations, ϕ, x, seedMC, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec)
+    FFCT = UnavailSimulator(FFC, stations, ϕ, x, seedMC, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, N_MC_trials_per_interReturn, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction)
 
     FFC = FFCT[1:11]
     timer = FFCT[12]           
@@ -263,33 +248,5 @@ function MiniPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Flo
     str = join(FFC, " ")
     return str              # return the same vector but as a string without "[", "]" or "," (used for NOMAD solver)
 end
-
-
-
-
-#=
-
-
-
-x_nomad =   [2, 3.4599330238832699536, 1, 9.9993679337233398741, 6.170079980093530203, 5, 1.6501819821240399921, 1, 8.5260816911309600385, 2, 1.199716170445690011,  5, 1.579786280184640068,  2, 3.5407777232053598837, 1, 4.3302690160008801001, 3, 1.4601645234989399924, 3, 3.5496390492183698129, 4, 1.5305431191758300802, 2, 3.6400045306912600651, 2, 2.5002938106947798502, 1.1015503120004999094]
-
-
-
-# x = [I, F, I, F, F, I, F, I, F, I, F, I, F, I, F, I, F, I, F, I, F, I, F, I, F, I, F, F]
-  x = [2, 1, 3, 7, 6, 6, 2, 2, 9, 2, 4, 2, 2, 2, 3, 4, 5, 3, 2, 3, 4, 2, 2, 3, 4, 3, 3, 2]
-
-  x = [2 + i % 2 for i in 1:28]
-
-ϕ = 1.0
-#for ϕ in 0.1:0.1:0.4
-seedMC = 576987593463#98847
-#seedInit = 576987593463 #8172
-#for i in 1:10
-    #x = [i for k in 1:28]
-    FFC = MiniPRIAD(x, ϕ, seedMC, param=1, loggingTime="true")
-    #println("FFC : $(FFC) pour une fidélité de ϕ = $ϕ et i = $i")
-#end
-#end
-=#
 
 GC.gc()
