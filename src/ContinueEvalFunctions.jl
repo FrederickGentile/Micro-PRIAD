@@ -12,18 +12,18 @@ using Printf
 the "basicContinueEval" function take a fidelity level vector, the objective function value and the constraint values and always return true, it is call to avoid dynamic interuption of the BB
     @Param ϕ: is a vector of fidelity levels at which the objective function and the constraints where evaluated
     @Param FC: is a vector containing the objective function value and the constraints values
-    @Param str: is an unused parameter in this function, it is here to respect the function signature required by MiniPRIAD
+    @Param str: is an unused parameter in this function, it is here to respect the function signature required by MicroPRIAD
 =#
 function basicContinueEval(ϕ, FC, str)
     return true
 end
 
 #=
-the "printInterReturnConinueEval" function take a fidelity level vector, the objective function value and the constraint values and print them in a file "interReturnLog.txt" located in the MiniPRIAD main directory
+the "printInterReturnConinueEval" function take a fidelity level vector, the objective function value and the constraint values and print them in a file "interReturnLog.txt" located in the MicroPRIAD main directory
     @Param ϕ: is a vector of fidelity levels at which the objective function and the constraints where evaluated
     @Param FC: is a vector containing the objective function value and the constraints values
     @Param str: is a Sting that can contain the path to the file where to print the information or the path to a file where to read the decision to continue or not the BB iteration
-        if str == "": the file "interReturnLog.txt" located in the MiniPRIAD main directory is used to print the information
+        if str == "": the file "interReturnLog.txt" located in the MicroPRIAD main directory is used to print the information
         if str contains only one word:
             if str contains ".txt": the file located at the path given by str is used to print the information
             else: the file "interReturnLog.txt" located in the directory given by str is used to print the information
@@ -139,7 +139,7 @@ end
 the "DeterministicInfoContinueEval" function take a fidelity level vector, the objective function value and the constraint values and return false if one of the five deterministic constraints is violated, true otherwise
     @Param ϕ: is a vector of fidelity levels at which the objective function and the constraints where evaluated
     @Param FC: is a vector containing the objective function value and the constraints values
-    @Param str: is an unused parameter in this function, it is here to respect the function signature required by MiniPRIAD
+    @Param str: is an unused parameter in this function, it is here to respect the function signature required by MicroPRIAD
 =#
 function DeterministicInfoContinueEval(ϕ, FC, str)
     if any(FC[2:6] .> 0)

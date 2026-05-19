@@ -22,7 +22,7 @@ else
 end
 
 #=================================================x0 feasible===========================================================#
-for instance in 1:3
+#=for instance in 1:3
     for input_length in [13, 15, 28]
         ACTUAL_FILE_PATH = "$BENCHMARK_HOME/NOMAD_results/i=$(instance)_l=$(input_length)_x0feas"
         mkpath(ACTUAL_FILE_PATH)
@@ -66,13 +66,15 @@ for instance in 1:3
         close(io)
         run(pipeline(`$NOMAD_HOME/nomad $ACTUAL_FILE_PATH/nomad_param.txt`, stdout = open("$ACTUAL_FILE_PATH/nomad_output.txt", "w")))
     end
-end
+end=#
 #=======================================================================================================================#
 
 #=================================================x0 infeasible=========================================================#
-
 for instance in 1:3
     for input_length in [13, 15, 28]
+        if (instance == 1 && (input_length == 13 || input_length == 15))
+            continue
+        end
         ACTUAL_FILE_PATH = "$BENCHMARK_HOME/NOMAD_results/i=$(instance)_l=$(input_length)_x0infeas"
         mkpath(ACTUAL_FILE_PATH)
 

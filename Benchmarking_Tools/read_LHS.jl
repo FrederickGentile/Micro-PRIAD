@@ -182,5 +182,71 @@ function AverageExecutionalTImeCalculator()
     end
 end
 
+global MeanTime = Vector{Float64}(undef, 5)
+global σTime = Vector{Float64}(undef, 5)
+
+function AverageExecutionalTImePloting()
+    vecϕ = [1.0, 0.1, 0.01, 0.001, 0.0001]
+    fig = plot(title = "Temps d'exécution en fonction du niveau de fidélité",
+                xlabel = "fidélité",
+                ylabel = "Temps d'exécution moyen")
+    for i in [1, 2, 3]
+        for l in [13, 15, 28]
+            for j in 1:5
+                ϕ = vecϕ[j]
+                ACTUAL_FILE_PATH = "$path2LHS_results/input_length=$l/instance=$i/10000phi=$(Int(round(10^4 * ϕ)))"
+                timeVec = getLoggingTime(ACTUAL_FILE_PATH)
+                MeanTime[j] =  mean(timeVec)
+                σTime[j] = (var(timeVec))^(0.5)
+            end
+                plot!(fig,  vecϕ, MeanTime, label = "$(i)_$l", seriestype=:scatter, xaxis = :log10, yaxis = :log10)
+                    display(fig)
+
+        end
+    end
+    display(fig)
+
+end
+
+function AverageExecutionalTImePlotinBar()
+    vecϕ = [1.0, 0.1, 0.01, 0.001, 0.0001]
+    #fig = bar(title = "Temps d'exécution en fonction du niveau de fidélité",
+                #xlabel = "fidélité",
+                #ylabel = "Temps d'exécution moyen")
+    for i in [1, 2, 3]
+        fig = bar(title = "Temps d'exécution en fonction du niveau de fidélité",
+                xlabel = "fidélité",
+                ylabel = "Temps d'exécution moyen", yaxis = :log10)
+                lenVec = Vector{Int64}(undef, 3)
+                if i == 1
+                    lenVec = [28, 13, 15]
+                elseif i ==2
+                    lenVec = [28, 15, 13]
+                else
+                    lenVec = [28, 15, 13]
+                end
+        for l in lenVec
+            for j in 1:5
+                ϕ = vecϕ[j]
+                ACTUAL_FILE_PATH = "$path2LHS_results/input_length=$l/instance=$i/10000phi=$(Int(round(10^4 * ϕ)))"
+                timeVec = getLoggingTime(ACTUAL_FILE_PATH)
+                MeanTime[j] =  mean(timeVec)
+                σTime[j] = (var(timeVec))^(0.5)
+            end
+            str = ["$(vecϕ[6 - k])" for  k in 1:5]
+                bar!(fig, str, reverse(MeanTime),
+                title = "Temps d'exécution en fonction du niveau de fidélité",
+                xlabel = "fidélité",
+                ylabel = "Temps d'exécution moyen", 
+                yaxis = :log10, 
+                label = "$(i)_$l")
+        end
+        display(fig)
+    end
+
+end
+
 #precedesGraphPlotting()
 AverageExecutionalTImeCalculator()
+#AverageExecutionalTImePloting()
+AverageExecutionalTImePlotinBar()
