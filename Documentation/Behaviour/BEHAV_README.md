@@ -1,6 +1,6 @@
 ## Running time 
 
-The Running time for each input length of each instance at different fidelity is logged in the table below. The table is also illustrated in a plot in the [time_illustration](/Micro-PRIAD/Documentation/Behaviour/Time_Illustration.pdf) file in this directory.
+The Running time for each input length of each instance at different fidelity is logged in the table below. The table is also illustrated in a plot in the [time_illustration](./Time_Illustration.pdf) file in this directory.
 
 i : instance, l : input dimention's
 
@@ -34,7 +34,7 @@ Here is the list of best know values of the objective function for the three ins
 	instance 3 with 15 dimentions input		3.026649388391754e8
 	instance 3 with 28 dimentions input		3.024380841101112e8
 ```
-The point associated to the best value found is in the `best_known_x.txt` file, you will find this file in the `$MICRO_PRIAD_HOME/Tests` directory. or a list of the best point for every instance is presented in the file [every_best_x](/Micro-PRIAD/Documentation/Behaviour/every_best_x.md) in this directory.
+The point associated to the best value found is in the `best_known_x.txt` file, you will find this file in the `$MICRO_PRIAD_HOME/Tests` directory. or a list of the best point for every instance is presented in the file [every_best_x](./every_best_x.md) in this directory.
 
 ## General Behavior
 
@@ -42,15 +42,15 @@ A general behavior is illstrated trough plots where all but one input dimension 
 i : instance, l : input dimention's
 | Instance | Input Length | Link |
 |---|---|---|
-| i = 1 | l = 28 | [Behaviour_i1l28](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i1l13.pdf) |
-| i = 1 | l = 15 | [Behaviour_i1l15](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i1l15.pdf) |
-| i = 1 | l = 13 | [Behaviour_i1l13](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i1l28.pdf) |
-| i = 2 | l = 28 | [Behaviour_i2l28](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i2l13.pdf) |
-| i = 2 | l = 15 | [Behaviour_i2l15](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i2l15.pdf) |
-| i = 2 | l = 13 | [Behaviour_i2l13](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i2l28.pdf) |
-| i = 3 | l = 28 | [Behaviour_i3l28](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i3l13.pdf) |
-| i = 3 | l = 15 | [Behaviour_i3l15](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i3l15.pdf) |
-| i = 3 | l = 13 | [Behaviour_i3l13](/Micro-PRIAD/Documentation/Behaviour/Behaviour_figures/Comportement_i3l28.pdf) |
+| i = 1 | l = 28 | [Behaviour_i1l28](./Behaviour_figures/Comportement_i1l13.pdf) |
+| i = 1 | l = 15 | [Behaviour_i1l15](./Behaviour_figures/Comportement_i1l15.pdf) |
+| i = 1 | l = 13 | [Behaviour_i1l13](./Behaviour_figures/Comportement_i1l28.pdf) |
+| i = 2 | l = 28 | [Behaviour_i2l28](./Behaviour_figures/Comportement_i2l13.pdf) |
+| i = 2 | l = 15 | [Behaviour_i2l15](./Behaviour_figures/Comportement_i2l15.pdf) |
+| i = 2 | l = 13 | [Behaviour_i2l13](./Behaviour_figures/Comportement_i2l28.pdf) |
+| i = 3 | l = 28 | [Behaviour_i3l28](./Behaviour_figures/Comportement_i3l13.pdf) |
+| i = 3 | l = 15 | [Behaviour_i3l15](./Behaviour_figures/Comportement_i3l15.pdf) |
+| i = 3 | l = 13 | [Behaviour_i3l13](./Behaviour_figures/Comportement_i3l28.pdf) |
 --------------------------------------------
 
-Back to Main [README](/Micro-PRIAD/README.md).
+Back to Main [README](../../README.md).

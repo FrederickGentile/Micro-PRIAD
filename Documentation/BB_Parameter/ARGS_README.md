@@ -33,7 +33,7 @@ The different argument that Micro-PRIAD can take as an input can be given trough
 - single_MC_info_return: ...
 
 
-> Brefly described version of what Micro-PRIAD needs is presented in the tests [directory](/Micro-PRIAD/Tests/instance=1/ex_ARGS.txt)
+> Brefly described version of what Micro-PRIAD needs is presented in the tests [directory](../../Tests/instance=1/ex_ARGS.txt)
 --------------------------------------------
 
-Back to Main [README](/Micro-PRIAD/README.md).
+Back to Main [README](../../README.md).

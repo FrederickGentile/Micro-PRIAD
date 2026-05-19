@@ -39,4 +39,4 @@ julia $MICRO_PRIAD_HOME/Benchmarking_Tools/Run_RS.jl
 
 --------------------------------------------
 
-Back to Main [README](/Micro-PRIAD/README.md).
+Back to Main [README](../../README.md).
