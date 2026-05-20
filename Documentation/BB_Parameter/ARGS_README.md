@@ -1,39 +1,48 @@
-The different argument that Micro-PRIAD can take as an input can be given trough the 'ARG.txt' file. The parameters are listed and descibed below. A simple exemple of a ARGS.txt file is given in this [directory](/Micro-PRIAD/Documentation/BB_Parameter/ex_ARGS.txt) and a full described version is available in the tests [directory](/Micro-PRIAD/Tests/instance=1/ex_ARGS.txt)
+## Black-Box Parameters (ARGS.txt)
 
+The different arguments that Micro-PRIAD can take as input can be provided through the `ARGS.txt` file. The parameters are listed and described below. A simple example of an `ARGS.txt` file is available in this [directory](/Micro-PRIAD/Documentation/BB_Parameter/ex_ARGS.txt), and a fully documented version is available in the tests [directory](/Micro-PRIAD/Tests/instance=1/ex_ARGS.txt).
 
-- fidelity: It is a reel number bounded by 0 and 1, that represent the final output fidelity to the reality. For each increment of 0.0001 in the fidelity, the Blackbox does 1 more MC trial to a maximum of 10000 trials when the fidelity is at 1.0. 
-    -> default value of 1.0
+---
 
-- seed: It is a integer number that represent the random seed used for Monte-Carlos trials. By changing the seed, Micro-PRIAD return differnent results, because the random trials are different.
-    -> default value of 0
+### Parameters List
 
-- instance: It is an integer that can take the values [1, 2, 3] to represent an instance number. This argument control the type of electrical network used in the balckbox but does not chhange the number of constaint and does not affet the input length.
-    -­> default value of 1
+* **`fidelity`**: A real number bounded between `0.0` and `1.0` that represents the accuracy of the final output relative to reality. For each increment of `0.0001` in fidelity, the black-box performs one additional Monte Carlo (MC) trial, up to a maximum of 10,000 trials when fidelity is set to `1.0`.
+  * *Default value:* `1.0`
 
-- loggingTime: It is an argument that if specified to "false" does not do anything but if specified to a path, will create a timeLog file where each line of the .txt file represent the execution time of an iteration.
-    -> Default value of "false"
+* **`seed`**: An integer representing the random seed used for the Monte Carlo trials. Changing the seed will cause Micro-PRIAD to return different results due to varying random trial sequences.
+  * *Default value:* `0`
 
-- continueEval: It is a function that you can redefine in Julia that would replace the basic function implemented in Micro-PRIAD that always return true, this function is a function that takes intermediate value of the objective function and the constraint with the associated fidelity, this function then chose to interupte the blackbox iteration or let it continue. It is called often in the blackbox at different fidelity. In the ARGS.txt file the path to the .jl file contaning the Julia function and the name of the Julia function need to be specified. Four Default function are implemented in the code:
-    + basicContinueEval: always return true (never interupt the Blackbox) -­> Default value
-    + printInterReturnConinueEval: print in a .txt file every intermediate information and wait for a decision in another .txt file to chose wether to continue or stop the evaluation.
-    + DeterministicInfoContinueEval: return false when one of the 5 deterministic constraint is violated, and return true otherwise.
-    + feasiblePtsFinderContinueEval: ...
+* **`instance`**: An integer that can take the values `[1, 2, 3]` to select a specific problem instance. This argument controls the type of electrical network configuration used inside the black-box, but it does not change the number of constraints or affect the input vector length.
+  * *Default value:* `1`
 
-- AnyParamForContinueEvalFunction: A string parmeter given to the continueEval function in julia. Default continueEval needs specific param here.
-    -> Default value of ""
+* **`loggingTime`**: A parameter used for benchmarking. If set to `"false"`, time logging is deactivated. If set to a specific file path, it will create a time-log file where each line records the exact execution time of a single iteration.
+  * *Default value:* `"false"`
 
-- N_MC_trials: It fixes the maximum number of Monte Carlos trials, fixes the number of trials representing the truth.
-    -> Default value of 10000
+* **`continueEval`**: A path pointing to a custom Julia function that overrides Micro-PRIAD's native evaluation loop (which defaults to always returning `true`). This function intercepts intermediate objective function values and constraint metrics at specific fidelity levels to decide whether to early-terminate the black-box iteration or let it run to completion. It is triggered frequently at various fidelity milestones. In the `ARGS.txt` file, you must specify both the path to the `.jl` file and the specific name of the Julia function. 
 
-- N_MC_trials_per_interReturn: It controls the frequency of intermediate return
-    -> Default value of 1000
+  Four built-in strategies are already implemented:
+  * `basicContinueEval`: Always returns `true` (never interrupts the black-box execution). *--> Default value*
+  * `printInterReturnContinueEval`: Logs every intermediate evaluation step into a `.txt` file and pauses, waiting for a user decision via an external file to either abort or resume the evaluation.
+  * `DeterministicInfoContinueEval`: Aborts the execution (returns `false`) as soon as one of the 5 deterministic constraints is violated, saving computational overhead.
+  * `feasiblePtsFinderContinueEval`: *(Description pending)*
 
-- halfTrialsReturn: It allows aditional intermediate return at key moment in Micro-PRIAD when not every constraint is evaluated to the same fidelity. respectiv fidelity of the constraints evaluation is given in a fidelity vector.
+* **`AnyParamForContinueEvalFunction`**: A string parameter passed directly to the custom `continueEval` Julia function. Some custom functions require specific initialization strings or flags here.
+  * *Default value:* `""`
 
-- single_MC_info_return: ...
+* **`N_MC_trials`**: Explicitly fixes the maximum number of Monte Carlo trials, which represents the ground-truth benchmark accuracy.
+  * *Default value:* `10000`
 
+* **`N_MC_trials_per_interReturn`**: Controls the sampling frequency of intermediate status returns.
+  * *Default value:* `1000`
 
-> Brefly described version of what Micro-PRIAD needs is presented in the tests [directory](../../Tests/instance=1/ex_ARGS.txt)
+* **`halfTrialsReturn`**: A boolean flag allowing additional intermediate returns at critical points when not all constraints are being evaluated at the exact same fidelity level. The respective fidelity levels of the constraint evaluations are tracked via an internal fidelity vector.
+
+* **`single_MC_info_return`**: *(Description pending)*
+
+---
+
+> A briefly described summary of the Micro-PRIAD needs is presented in the tests [directory](../../Tests/instance=1/ex_ARGS.txt).
+
 --------------------------------------------
 
-Back to Main [README](../../README.md).
+[Back to Main README](../../README.md)

@@ -39,7 +39,7 @@ end
 #########################################################################################################################
 
 needHelp = true
-if "-help" ∈ ARGS || "-h" ∈ ARGS
+if "-help" ∈ ARGS || "-h" ∈ ARGS || "-test" ∈ ARGS || "-t" ∈ ARGS || "-tests" ∈ ARGS
     global needHelp = true
 
 elseif length(ARGS) == 1
@@ -99,7 +99,7 @@ elseif length(ARGS) == 2
                 elseif splitLine[1] == "loggingTime"
                     if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
                         global loggingTime = "$(parse(Bool, splitLine[2]))"
-                    elseif contains(splitLine[2], ".txt")
+                    elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
                         global loggingTime = splitLine[2]
                     else
                         global loggingTime = "false"
@@ -124,7 +124,14 @@ elseif length(ARGS) == 2
                         global N_MC_trials = parse(Int64, splitLine[2])
                     end
                 elseif splitLine[1] == "single_MC_info_return"
-                    global single_MC_info_return = join(splitLine[2:end], " ")
+                    if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" || splitLine[2] == "1.0" || splitLine[2] == "0.0" 
+                        global single_MC_info_return = "$(parse(Bool, splitLine[2]))"
+                    elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
+                        global single_MC_info_return = splitLine[2]
+                    else
+                        global single_MC_info_return = "false"
+                        @warn "The value entered for the single_MC_info_return argument was not of a type asked, it was considered as \"false\""
+                    end
                 else 
                     @warn "did not recognize the argument \"$(splitLine[1])\" in the ARGS_FILE, it was ignored"
                 end
@@ -194,7 +201,7 @@ elseif length(ARGS) > 2
         elseif splitLine[1] == "loggingTime"
             if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
                 global loggingTime = "$(parse(Bool, splitLine[2]))"
-            elseif contains(splitLine[2], ".txt")
+            elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
                 global loggingTime = splitLine[2]
             else
                 global loggingTime = "false"
@@ -206,7 +213,7 @@ elseif length(ARGS) > 2
             end
             global N_MC_trials_per_interReturn = Int64(round(parse(Float64, splitLine[2])))
         elseif splitLine[1] == "halfTrialsReturn"
-            if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
+            if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" || splitLine[2] == "1.0" || splitLine[2] == "0.0"
                 global halfTrialsReturn = parse(Bool, splitLine[2])
             else
                 global halfTrialsReturn = true
@@ -219,9 +226,13 @@ elseif length(ARGS) > 2
                 global N_MC_trials = parse(Int64, splitLine[2])
             end
         elseif splitLine[1] == "single_MC_info_return"
-            global single_MC_info_return = join(splitLine[2:end], " ")
-            if single_MC_info_return == "0" || single_MC_info_return == "0.0"
+             if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" || splitLine[2] == "1.0" || splitLine[2] == "0.0" 
+                global single_MC_info_return = "$(parse(Bool, splitLine[2]))"
+            elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
+                global single_MC_info_return = splitLine[2]
+            else
                 global single_MC_info_return = "false"
+                @warn "The value entered for the single_MC_info_return argument was not of a type asked, it was considered as \"false\""
             end
         else 
             @warn "did not recognize the argument \"$(splitLine[1])\", it was ignored"
@@ -256,18 +267,22 @@ end
 
 
 if (needHelp == true)
-    print(" \n \nTo run a simulation, there are three options. you can eighter : \n
-    \t- type `\$MiniPRIAD_HOME/src/run.jl ARGS.txt x.txt` where the `ARGS.txt` contains the necessary information to call the blackbox or \n
-    \t- type `\$MiniPRIAD_HOME/src/run.jl x.txt` where the necessary information to call the blackbox is in comment box in green in the `run.jl` file or \n
+    if "-test" ∈ ARGS || "-t" ∈ ARGS || "-tests" ∈ ARGS 
+        expectedOutput = "1.0 2.2390850610560286e8 -139.1111111111109 -214.0000000000002 189.2098832620489 353.3228016557553 236.4837418912764 631.4088235298689 1206.1882352941223 841.6711665446503 882.4156291146428"
+        if (MicroPRIAD([3 for i in 1:28], 0.0001, 0)) == expectedOutput
+            println("The test of the blackbox function gave the expected output, it seems that everything is working fine, you can now run your own simulation with the arguments you want!")
+        else
+            println("The test of the blackbox function did not give the expected output, please report this issue to us with the output you got and the version of Julia you are using")
+            println("\nThe expected output is \"$expectedOutput\" and your output is \"$(MicroPRIAD([3 for i in 1:28], 0.0001, 0))\"")
+        end
+    else
+    print(" \n \nTo run a simulation, there are four options. you can eighter : \n
+    \t- type `\$MiniPRIAD_HOME/src/run.jl pathToARGS/ARGS.txt pathToX/x.txt` where the `ARGS.txt` contains the necessary information to call the blackbox or \n
+    \t  type `\$MiniPRIAD_HOME/src/run.jl -@param1 value1 -@param2 value2 ... pathToX/x.txt` where the necessary information to call the blackbox is in the (-@paramJ valueJ) couple of the command line or \n
+    \t- type `\$MiniPRIAD_HOME/src/run.jl pathToX/x.txt` where the necessary information to call the blackbox is in comment box in green in the `run.jl` file or \n
     \t- call the MicroPRIAD Julia function direcly in a Julia sript if your solver is defined in julia (don't forget to include \"MicroPRIAD.jl\"). \n
     \n
-    The `ARGS.txt` file contains the same informations that you would need to define in the comment box in julia if you chose the second or third execution option. It contains the folowing arguments and formated like in the `ex_ARGS.txt` files located in each folder in `\$MiniPRIAD_HOME/Tests` : \n
-    \t- fidelity: It is a reel number bounded by 0 and 1, 0 excluded that represent the output fidelity to the reality. \n
-    \t- seed: It is a integer number that represent the random seed used for Monte-Carlos trials. \n
-    \t- instance: It is an integer that can take the values [1, 2, 3] to represent an instance number or any other integer to represent the home made instance that you can modify in the file `\$MiniPRIAD_HOME/src/Param.jl`. This argument control the type of electrical network used in the balckbox but does not chhange the number of constaint and does not affet the input length. \n
-    \t- loggingTime: It is an argument that if specified to \"false\" does not do anything but if specified to a path, will creat a timeLog file where each line of the .txt file represent the execution time of an iteration. \n
-    \t- continueEval: It is a function that you can redefine in Julia that would replace the basic function implemented in Mini-PRIAD that always return true, this function is a function that takes is called often in the blackbox at different fidelity. It give to continueEval function intermediate value of the objective function and the constraint with the associated fidelity, this function then chose to interupte the blackbox iteration or let it continue. In the ARGS.txt file the path to the .jl file contaning the Julia function and the name of the Julia function need to be specified. \n
-    Only the seed and the fidelity needs to be inisialized the other variable are optional. \n
+    The ARGS.txt file contains the same informations that you would need to define in Julia if you chose the execution option 2, 3 or 4. It contains arguments described in ARGS_README in MICRO_PRIAD_HOME/documentation/BB_Parameter and formated like in the ex_ARGS.txt files located in each folder in MICRO_PRIAD_HOME/Tests. \n
     \n
     The `x.txt` file contains the input vector that can takes diferent sizes: \n
     input: It is the blackbox input of 28, 15 or 13 dimentions, including integer (I) and reel (R) inputs, the diferent input are defined like so: \n
@@ -277,5 +292,6 @@ if (needHelp == true)
     The `x.txt` file must contains only the numerical value of each variable seperated with spaces without \"[\", \",\" or \"[\" \n
     For all integer input the recommanded bounds are 1 and 9 and for all reel input the recommanded bounds are 0.1 and 10.0 \n \n")
     print_rgb(255, 0, 0, "If you you received this message, it means that you did not specify the arguments correctly or that you did not respect the input format. \n\n")
-    print_rgb(215, 215, 215, "\n")
+    print("\033[0m")
+    end
 end

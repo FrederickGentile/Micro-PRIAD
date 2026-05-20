@@ -15,29 +15,30 @@ julia
 in the terminal.
 > Note: You might need to load the julia module for the future use.
 ### Downloading Micro-PRIAD
- Now you only need to download the folder `Micro-PRIAD`. To use the commands descibded later, you need to initialize the environment variable  `$MICRO_PRIAD_HOME`. To create a environment variable you need to open `~/.bashrc` by running the following command in the terminal:
+ Now you only need to download the folder `Micro-PRIAD`.
+
+ To use the commands descibded later, you need to initialize the environment variable  `$MICRO_PRIAD_HOME`. To create a environment variable you need to open `~/.bashrc` by running the following command in the terminal:
 ```
 nano ~/.bashrc
 ```
 Then, in the opened file, you initialize the environment variable `MICRO_PRIAD_HOME`, after the first line in the opened file, by writing:
 ```
-MICRO_PRIAD_HOME="pathToMini-PRIAD/Micro-PRIAD"
+MICRO_PRIAD_HOME="pathToMicro-PRIAD/Micro-PRIAD"
 ```
-where pathToMini-PRIAD is the directory where the folder `Micro-PRIAD` was downloaded. Save the modification and escape the document. Now to enable the new varible you need to run the following line in the terminal:
+where pathToMicro-PRIAD is the directory where the folder `Micro-PRIAD` was downloaded. Save the modification and escape the document. Now to enable the new varible you need to run the following line in the terminal:
 ```
 source ~/.bashrc
 ```
-To make sure you did everything right, you can try to run the following in the terminal, it should work without error:
+To make sure you did everything right, you can try to run the following command in the terminal:
 ```
-julia $MICRO_PRIAD_HOME/src/run.jl $MICRO_PRIAD_HOME/Tests/instance=1/ex_ARGS.txt $MICRO_PRIAD_HOME/Tests/instance=1/length_input=28/x0_feasible/1.txt
+julia $MICRO_PRIAD_HOME/src/run.jl -test
 ```
-The expected output of the line above, at least on Linux, is:
-```
-1.0 7.184947978900144e7 -13.931372811062861 -50.33689164210764 -48.61949009325899 -1.9950187673091335 -68.43028809560832 -0.8498347080821986 -12.469886182537323 -6.000486548195852 -2.4223759922109593
-```
+
 ## Execution
 ### Different way to run Micro-PRIAD
-To run a simulation, there are three options.
+To run a simulation, there are four options.
+
+> Note: you can always type `julia $MICRO_PRIAD_HOME/src/run.jl -help` for execution option reminder.
 
 #### Option 1:
 
@@ -53,7 +54,7 @@ Type in the terminal a command thaat respect the following format
 ```
 julia $MICRO_PRIAD_HOME/src/run.jl -@param1 value1 -@param2 value2 ... -@paramN valueN path2X/x.txt 
 ```
-the (@paramJ valueJ) couple is formated as a line in the `ARGS.txt` file and `x.txt` contains the point to evaluate (see below for formating of those files).
+the (`@paramJ valueJ`) couple is formated as a line in the `ARGS.txt` file and `x.txt` contains the point to evaluate (see below for formating of those files).
 
 An simple exemple with only two parameter is given here
 ```
@@ -105,3 +106,4 @@ In the `$MICRO_PRIAD_HOME/Benchmarking_Tools` directory you will find different 
 ----------------------------
 
 The tree structure of the repo is shown in the [TREE_STRUCT_README](./Documentation/TREE_STRUCT_README.md)
+

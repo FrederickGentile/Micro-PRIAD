@@ -1,8 +1,8 @@
-## Running time 
+## Running Time
 
-The Running time for each input length of each instance at different fidelity is logged in the table below. The table is also illustrated in a plot in the [time_illustration](./Time_Illustration.pdf) file in this directory.
+The running time for each input length of each instance at different fidelity levels is logged in the table below. This data is also illustrated as a plot in the [time_illustration](./Time_Illustration.pdf) file within this directory.
 
-i : instance, l : input dimention's
+**Legend:** `i`: instance, `l`: input dimensions
 
 | Fidelity | 0.0001 | 0.001 | 0.01 | 0.1 | 1.0 |
 |---|---|---|---|---|---|
@@ -16,41 +16,46 @@ i : instance, l : input dimention's
 | i = 3, l = 15 | 0.027286  | 0.055294 | 0.34625 | 3.1183 | 30.361 |
 | i = 3, l = 13 | 0.024307  | 0.044028 | 0.25869 | 2.2888 | 22.335 |
 
-The fidelity in this table represent the number of MC trials done for the evaluation of a point. fidelity = 0.0001 representing only one MC trials and fidelity = 1.0 representing 10000 MC trials.
+The fidelity in this table represents the number of Monte Carlo (MC) trials performed to evaluate a point. A fidelity of 0.0001 represents a single MC trial, while a fidelity of 1.0 represents 10,000 MC trials.
 
-## Best objective function value found
+## Best Objective Function Value Found
 
-Here is the list of best know values of the objective function for the three instances with a default seed of zero:
+Here is the list of the best-known values of the objective function for the three instances, obtained using a default seed of zero:
+
+```text
+    Instance 1 with 13-dimension input:     4.180517980583656e7
+    Instance 1 with 15-dimension input:     7.797991073588863e7
+    Instance 1 with 28-dimension input:     6.848504620756665e7
+
+    Instance 2 with 13-dimension input:     5.461390597121722e7
+    Instance 2 with 15-dimension input:     9.151043287090775e7
+    Instance 2 with 28-dimension input:     8.888706619131872e7
+
+    Instance 3 with 13-dimension input:     1.849174377718951e8
+    Instance 3 with 15-dimension input:     3.026649388391754e8
+    Instance 3 with 28-dimension input:     3.024380841101112e8
 ```
-	instance 1 with 13 dimentions input		4.180517980583656e7
-	instance 1 with 15 dimentions input		7.797991073588863e7
-	instance 1 with 28 dimentions input		6.848504620756665e7
 
-	instance 2 with 13 dimentions input		5.461390597121722e7
-	instance 2 with 15 dimentions input		9.151043287090775e7
-	instance 2 with 28 dimentions input		8.888706619131872e7
-
-	instance 3 with 13 dimentions input	    1.849174377718951e8
-	instance 3 with 15 dimentions input		3.026649388391754e8
-	instance 3 with 28 dimentions input		3.024380841101112e8
-```
-The point associated to the best value found is in the `best_known_x.txt` file, you will find this file in the `$MICRO_PRIAD_HOME/Tests` directory. or a list of the best point for every instance is presented in the file [every_best_x](./every_best_x.md) in this directory.
+The vector coordinate associated with the best value found is located in the `best_known_x.txt` file inside the `$MICRO_PRIAD_HOME/Tests` directory. Alternatively, a complete list of the best points for every instance is available in the [every_best_x](./every_best_x.md) file within this directory.
 
 ## General Behavior
 
-A general behavior is illstrated trough plots where all but one input dimension are fixed. Those plots are illustrated in the Behaviour_figures folder in this directory. the link below leads you to the associated problem:
-i : instance, l : input dimention's
+The general behavior of the function is illustrated through plots where all but one input dimension are held fixed. These plots can be found in the `Behaviour_figures` folder in this directory. The table below provides direct links to the corresponding plots:
+
+**Legend:** `i`: instance, `l`: input dimensions
+
 | Instance | Input Length | Link |
 |---|---|---|
-| i = 1 | l = 28 | [Behaviour_i1l28](./Behaviour_figures/Comportement_i1l13.pdf) |
+| i = 1 | l = 28 | [Behaviour_i1l28](./Behaviour_figures/Comportement_i1l28.pdf) |
 | i = 1 | l = 15 | [Behaviour_i1l15](./Behaviour_figures/Comportement_i1l15.pdf) |
-| i = 1 | l = 13 | [Behaviour_i1l13](./Behaviour_figures/Comportement_i1l28.pdf) |
-| i = 2 | l = 28 | [Behaviour_i2l28](./Behaviour_figures/Comportement_i2l13.pdf) |
+| i = 1 | l = 13 | [Behaviour_i1l13](./Behaviour_figures/Comportement_i1l13.pdf) |
+| i = 2 | l = 28 | [Behaviour_i2l28](./Behaviour_figures/Comportement_i2l28.pdf) |
 | i = 2 | l = 15 | [Behaviour_i2l15](./Behaviour_figures/Comportement_i2l15.pdf) |
-| i = 2 | l = 13 | [Behaviour_i2l13](./Behaviour_figures/Comportement_i2l28.pdf) |
-| i = 3 | l = 28 | [Behaviour_i3l28](./Behaviour_figures/Comportement_i3l13.pdf) |
+| i = 2 | l = 13 | [Behaviour_i2l13](./Behaviour_figures/Comportement_i2l13.pdf) |
+| i = 3 | l = 28 | [Behaviour_i3l28](./Behaviour_figures/Comportement_i3l28.pdf) |
 | i = 3 | l = 15 | [Behaviour_i3l15](./Behaviour_figures/Comportement_i3l15.pdf) |
-| i = 3 | l = 13 | [Behaviour_i3l13](./Behaviour_figures/Comportement_i3l28.pdf) |
+| i = 3 | l = 13 | [Behaviour_i3l13](./Behaviour_figures/Comportement_i3l13.pdf) |
+
 --------------------------------------------
 
-Back to Main [README](../../README.md).
+[Back to Main README](../../README.md)

@@ -10,7 +10,7 @@ instance 1
 loggingTime false
 
 
-continueEval ../src/MiniPRIAD.jl basicContinueEval
+continueEval ../src/MicroPRIAD.jl basicContinueEval
 
 
 N_MC_trials_per_interReturn 1000
@@ -20,3 +20,6 @@ halfTrialsReturn 1
 
 
 N_MC_trials 10000
+
+
+single_MC_info_return false

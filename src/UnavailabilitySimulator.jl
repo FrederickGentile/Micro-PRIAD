@@ -315,7 +315,7 @@ The "UnavailSimulator" function is the function that call the splitUnavailSimula
     the splitUnavailSimulator function.
 This function is the one that return the value of FFCT to the Main function MicroPRIAD
 =#
-function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::Float64, x::Vector{Float64}, seedMC::Int64, continueEval::Function, timer, clk, C1_2_3_4_6_7_8_9multiplier::Float64, param::Int64, nbVec, N_MC_trials_per_interReturn::Int64, halfTrialsReturn::Bool, N_MC_trials::Int64, AnyParamForContinueEvalFunction, single_MC_info_return)  
+function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::Float64, x::Union{Vector{Float64}, Vector{Int64}}, seedMC::Int64, continueEval::Function, timer, clk, C1_2_3_4_6_7_8_9multiplier::Float64, param::Int64, nbVec, N_MC_trials_per_interReturn::Int64, halfTrialsReturn::Bool, N_MC_trials::Int64, AnyParamForContinueEvalFunction, single_MC_info_return)  
     nbEquipments = nbVec[18]
     if x[1] == Inf64
         nbStation = sum(nbVec[8:10])

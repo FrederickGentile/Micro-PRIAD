@@ -7,7 +7,7 @@ for i in 1:(length(splitDir) - 1)
     newSplitDir[i] = splitDir[i]
 end
 newDir = join(newSplitDir, "/")
-include("$newDir/src/MiniPRIAD.jl")
+include("$newDir/src/MicroPRIAD.jl")
 
 function COkay(FFC)
     for i in 3:11
@@ -94,7 +94,7 @@ function createLHS_x(nb_points::Int=10000)
 end
 
 function createLHS_Output(nb_points::Int=10000)
-    for input_length in [28]#[13, 15, 28]
+    for input_length in [13, 15, 28]
         ACTUAL_FILE_PATH = "$BENCHMARK_HOME/LHS_results/input_length=$input_length"
         mkpath(ACTUAL_FILE_PATH)
         io_x = open("$ACTUAL_FILE_PATH/lhs_x.txt", "r")
@@ -124,7 +124,7 @@ end
                     split_x_line = split(x_lines[i])
                     x = [parse(Float64, String(split_x_line[j])) for j in 1:input_length]
 
-                    FFC_str = MiniPRIAD(x, ϕ, 0, param = instance, loggingTime = loggingTimeFile)
+                    FFC_str = MicroPRIAD(x, ϕ, 0, param = instance, loggingTime = loggingTimeFile)
                     FFC_split_str = split(FFC_str)
                     FFC = Vector{Float64}(undef, 11)
                     for k in 1:11

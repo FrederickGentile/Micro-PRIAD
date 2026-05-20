@@ -6,7 +6,7 @@ for i in 1:(length(splitDir) - 1)
     newSplitDir[i] = splitDir[i]
 end
 newDir = join(newSplitDir, "/")
-include("$newDir/src/MiniPRIAD.jl")
+include("$newDir/src/MicroPRIAD.jl")
 
 function cOkay(FFC)
     for i in 3:11
@@ -17,8 +17,8 @@ function cOkay(FFC)
     return true
 end
 
-for instance in [3]#[1, 2, 3]
-    for input_length in [13]#[13, 15, 28]
+for instance in [1, 2, 3]
+    for input_length in [13, 15, 28]
         ACTUAL_FILE_PATH = "$BENCHMARK_HOME/RS_results/instance=$instance/input_length=$input_length"
         mkpath(ACTUAL_FILE_PATH)
         ϕ = 0.1
@@ -57,7 +57,7 @@ for instance in [3]#[1, 2, 3]
                     end
                 end
             end
-            FFC_str = split(MiniPRIAD(x, 0.001, 0, loggingTime = loggingTime))
+            FFC_str = split(MicroPRIAD(x, 0.001, 0, loggingTime = loggingTime))
 
             FFC = Vector{Float64}(undef, 11)
             for k in 1:11
