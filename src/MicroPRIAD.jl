@@ -7,7 +7,7 @@ include("RiskModule.jl")
 include("ContinueEvalFunctions.jl")
 
 #=
-the "checkInput" function check if the input given by the solver respect the input format, if not it print an error message
+The "checkInput" function checks if the input given by the solver respects the input format; if not, it prints an error message
 =#
 function checkInput(input)
     if length(input) == 28
@@ -16,12 +16,12 @@ function checkInput(input)
                 @error "The $(i)th input is supposed to be an Int but is not an Int"
             end
             if input[i] <= 0 
-                @error "The $(i)th input is is suppose to be positive but is non positive"
+                @error "The $(i)th input is supposed to be positive but is non positive"
             end
         end
         for i in [2, 4, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28]
             if input[i] <= 0 
-                @error "The $(i)th input is is suppose to be positive but is non positive"
+                @error "The $(i)th input is supposed to be positive but is non positive"
             end
         end
     elseif length(input) == 15
@@ -36,19 +36,20 @@ function checkInput(input)
                 @error "The $(i)th input is supposed to be an Int but is not an Int"
             end
             if input[i] <= 0 
-                @error "The $(i)th input is is suppose to be positive but is non positive"
+                @error "The $(i)th input is supposed to be positive but is non-positive"
             end
         end
         for i in [2, 4, 6, 8, 10, 12, 13]
             if input[i] <= 0 
-                @error "The $(i)th input is is suppose to be positive but is non positive"
+                @error "The $(i)th input is supposed to be positive but is non-positive"
             end
         end
     end
 end
 
 #=
-the "logTime" function is use to print the time required for a call of the black box, the time writen in the file is "time2Log" and it is writen only if ask (loggingTime == true)
+The "logTime" function is used to print the time required for a call of the black box, the time written in the file is 
+"time2Log" and it is written only if asked (loggingTime == true)
 =#
 function logTime(time2Log, loggingTime)
     if loggingTime == "true"
@@ -82,58 +83,57 @@ The "MicroPRIAD" function is the heart of the black box, it links the initializa
 ######################################################## Input ###########################################################
 @Param ϕ: is the blackbox fidelity and is contained from 0 to 1.
 @Param seedMC: is the black box random seed used for the Monte-Carlo samples
-@Param continueEval: is the function that control the intermidiate return of the function ant the constraints, it is initialize to "basicContinueEval" if not specified
-@Param param: argument inicate which instance is used to initialize the network, it can be set eighter to an instance [1, 2, 3] or be set to anything else to lunch the BB with the custumized parameters
-@Param loggingTime: argument indicate if the user wants the program to print a "timeLog.txt" file with the running time of each itterations.
-@Param N_MC_trials_per_interReturn: is the number of Monte-Carlo trials done at each intermidiate return of the black box, it is set to 1000 by default
-@Param halfTrialsReturn: is a boolean that indicate if there is an aditional intermediate return when half of the MC constraints are computed, it is set to true by default,
-     because between the first half and the second half of the constraints evaluation, there is a lot of time spent. it is even more true when N_MC_trials_per_interReturn is high.
-@Param single_MC_info_return: argumen indicate if the user wants the program to print every single Monte-Carlo trials in a .txt file
-@Param x: is the maintenances periodicity, the coordinate the the solver can itteract with, it is deffined as follow :
+@Param continueEval: is the function that controls the intermediate return of the function and the constraints, it is initialized to "basicContinueEval" if not specified
+@Param param: argument indicates which instance is used to initialize the network; it can be set either to an instance [1, 2, 3] or to anything else to launch the BB with the customized parameters
+@Param loggingTime: argument indicates if the user wants the program to print a "timeLog.txt" file with the running time of each itterations.
+@Param N_MC_trials_per_interReturn: is the number of Monte-Carlo trials done at each intermediate return of the blackbox, it is set to 1000 by default
+@Param halfTrialsReturn: is a boolean that indicates if there is an additional intermediate return when half of the MC constraints are computed. 
+    It is set to true by default, because between the first half and the second half of the constraints evaluation, there is a lot of time spent. It is even more true when N_MC_trials_per_interReturn is high.
+@Param single_MC_info_return: argument indicates if the user wants the program to print every single Monte-Carlo trial in a .txt file
+@Param x: is the maintenance's periodicity, the coordinate that the solver can interact with, it is defined as follows:
 
 for 28 inputs : for 15 inputs : for 13 inputs :
-     X[1]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for prod/HV transformators : of the prod/HV transformation stations : for the failure mecanism of the radiator obstruction
-     X[2]     :     X[1]      :               : Float64 : maintenance periodicity                                                                         : for prod/HV transformators : of the prod/HV transformation stations : for the failure mecanism of the groud wire theft
-     X[3]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV insulators          : of the prod/HV transformation stations : for the failure mecanism of the de la corrosion
-     X[4]     :     X[2]      :               : Float64 : maintenance periodicity                                                                         : for HV insulators          : of the prod/HV transformation stations : for the failure mecanism of the copper theft
-     X[5]     :     X[3]      :               : Float64 : maintenance periodicity                                                                         : for HV cables              : of the HV transporting lines           : for the failure mecanism of the lines obstruction by the growth of tree          
-     X[6]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV insulators          : of the HV transporting lines           : for the failure mecanism of the de la corrosion 
-     X[7]     :     X[4]      :               : Float64 : maintenance periodicity                                                                         : for HV insulators          : of the HV transporting lines           : for the failure mecanism of the copper theft 
-     X[8]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV/MV transformators   : of the HV/MV transformation stations   : for the failure mecanism of the radiator obstruction             
-     X[9]     :     X[5]      :               : Float64 : maintenance periodicity                                                                         : for HV/MV transformators   : of the HV/MV transformation stations   : for the failure mecanism of the groud wire theft              
-     X[10]    :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV disconnectors       : of the HV/MV transformation stations   : for the failure mecanism of the de la corrosion 
-     X[11]    :     X[6]      :               : Float64 : maintenance periodicity                                                                         : for HV disconnectors       : of the HV/MV transformation stations   : for the failure mecanism of the copper theft
-     X[12]    :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV breakers            : of the HV/MV transformation stations   : for the failure mecanism of the de la corrosion
-     X[13]    :     X[7]      :               : Float64 : maintenance periodicity                                                                         : for HV breakers            : of the HV/MV transformation stations   : for the failure mecanism of the copper theft
-     X[14]    :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV insulators          : of the HV/MV transformation stations   : for the failure mecanism of the de la corrosion
-     X[15]    :     X[8]      :               : Float64 : maintenance periodicity                                                                         : for HV insulators          : of the HV/MV transformation stations   : for the failure mecanism of the copper theft
-     X[16]    :               :     X[1]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV cables              : of the MV transporting lines           : for the failure mecanism of the lines obstruction            
-     X[17]    :     X[9]      :     X[2]      : Float64 : maintenance periodicity                                                                         : for MV cables              : of the MV transporting lines           : for the failure mecanism of the copper theft            
-     X[18]    :               :     X[3]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV insulators          : of the MV transporting lines           : for the failure mecanism of the de la corrosion               
-     X[19]    :     X[10]     :     X[4]      : Float64 : maintenance periodicity                                                                         : for MV insulators          : of the MV transporting lines           : for the failure mecanism of the copper theft                
-     X[20]    :               :     X[5]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV/LV transformators   : of the MV/LV transformation stations   : for the failure mecanism of the radiator obstruction          
-     X[21]    :     X[11]     :     X[6]      : Float64 : maintenance periodicity                                                                         : for MV/LV transformators   : of the MV/LV transformation stations   : for the failure mecanism of the groud wire theft          
-     X[22]    :               :     X[7]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV disconnectors       : of the MV/LV transformation stations   : for the failure mecanism of the de la corrosion                 
-     X[23]    :     X[12]     :     X[8]      : Float64 : maintenance periodicity                                                                         : for MV disconnectors       : of the MV/LV transformation stations   : for the failure mecanism of the copper theft                  
-     X[24]    :               :     X[9]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV breakers            : of the MV/LV transformation stations   : for the failure mecanism of the de la corrosion                 
-     X[25]    :     X[13]     :     X[10]     : Float64 : maintenance periodicity                                                                         : for MV breakers            : of the MV/LV transformation stations   : for the failure mecanism of the copper theft                  
-     X[26]    :               :     X[11]     : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV insulators          : of the MV/LV transformation stations   : for the failure mecanism of the de la corrosion                
-     X[27]    :     X[14]     :     X[12]     : Float64 : maintenance periodicity                                                                         : for MV insulators          : of the MV/LV transformation stations   : for the failure mecanism of the copper theft                
-     X[28]    :     X[15]     :     X[13]     : Float64 : maintenance periodicity                                                                         : for LV cables              : of the LV transporting lines           : for the failure mecanism of the copper theft        
+     X[1]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for prod/HV transformators : of the prod/HV transformation stations : for the failure mechanisme of the radiator obstruction
+     X[2]     :     X[1]      :               : Float64 : maintenance periodicity                                                                         : for prod/HV transformators : of the prod/HV transformation stations : for the failure mechanisme of the ground wire theft
+     X[3]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV insulators          : of the prod/HV transformation stations : for the failure mechanisme of the de la corrosion
+     X[4]     :     X[2]      :               : Float64 : maintenance periodicity                                                                         : for HV insulators          : of the prod/HV transformation stations : for the failure mechanisme of the copper theft
+     X[5]     :     X[3]      :               : Float64 : maintenance periodicity                                                                         : for HV cables              : of the HV transporting lines           : for the failure mechanisme of the lines obstruction by the growth of tree          
+     X[6]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV insulators          : of the HV transporting lines           : for the failure mechanisme of the de la corrosion 
+     X[7]     :     X[4]      :               : Float64 : maintenance periodicity                                                                         : for HV insulators          : of the HV transporting lines           : for the failure mechanisme of the copper theft 
+     X[8]     :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV/MV transformators   : of the HV/MV transformation stations   : for the failure mechanisme of the radiator obstruction             
+     X[9]     :     X[5]      :               : Float64 : maintenance periodicity                                                                         : for HV/MV transformators   : of the HV/MV transformation stations   : for the failure mechanisme of the ground wire theft              
+     X[10]    :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV disconnectors       : of the HV/MV transformation stations   : for the failure mechanisme of the de la corrosion 
+     X[11]    :     X[6]      :               : Float64 : maintenance periodicity                                                                         : for HV disconnectors       : of the HV/MV transformation stations   : for the failure mechanisme of the copper theft
+     X[12]    :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV breakers            : of the HV/MV transformation stations   : for the failure mechanisme of the de la corrosion
+     X[13]    :     X[7]      :               : Float64 : maintenance periodicity                                                                         : for HV breakers            : of the HV/MV transformation stations   : for the failure mechanisme of the copper theft
+     X[14]    :               :               : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for HV insulators          : of the HV/MV transformation stations   : for the failure mechanisme of the de la corrosion
+     X[15]    :     X[8]      :               : Float64 : maintenance periodicity                                                                         : for HV insulators          : of the HV/MV transformation stations   : for the failure mechanisme of the copper theft
+     X[16]    :               :     X[1]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV cables              : of the MV transporting lines           : for the failure mechanisme of the lines obstruction            
+     X[17]    :     X[9]      :     X[2]      : Float64 : maintenance periodicity                                                                         : for MV cables              : of the MV transporting lines           : for the failure mechanisme of the copper theft            
+     X[18]    :               :     X[3]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV insulators          : of the MV transporting lines           : for the failure mechanisme of the de la corrosion               
+     X[19]    :     X[10]     :     X[4]      : Float64 : maintenance periodicity                                                                         : for MV insulators          : of the MV transporting lines           : for the failure mechanisme of the copper theft                
+     X[20]    :               :     X[5]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV/LV transformators   : of the MV/LV transformation stations   : for the failure mechanisme of the radiator obstruction          
+     X[21]    :     X[11]     :     X[6]      : Float64 : maintenance periodicity                                                                         : for MV/LV transformators   : of the MV/LV transformation stations   : for the failure mechanisme of the ground wire theft          
+     X[22]    :               :     X[7]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV disconnectors       : of the MV/LV transformation stations   : for the failure mechanisme of the de la corrosion                 
+     X[23]    :     X[12]     :     X[8]      : Float64 : maintenance periodicity                                                                         : for MV disconnectors       : of the MV/LV transformation stations   : for the failure mechanisme of the copper theft                  
+     X[24]    :               :     X[9]      : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV breakers            : of the MV/LV transformation stations   : for the failure mechanisme of the de la corrosion                 
+     X[25]    :     X[13]     :     X[10]     : Float64 : maintenance periodicity                                                                         : for MV breakers            : of the MV/LV transformation stations   : for the failure mechanisme of the copper theft                  
+     X[26]    :               :     X[11]     : Int64   : maintenance periodicity depending on the next periodicity in the maintenance periodicity vector : for MV insulators          : of the MV/LV transformation stations   : for the failure mechanisme of the de la corrosion                
+     X[27]    :     X[14]     :     X[12]     : Float64 : maintenance periodicity                                                                         : for MV insulators          : of the MV/LV transformation stations   : for the failure mechanisme of the copper theft                
+     X[28]    :     X[15]     :     X[13]     : Float64 : maintenance periodicity                                                                         : for LV cables              : of the LV transporting lines           : for the failure mechanisme of the copper theft        
 ###########################################################################################################################
 ######################################################## Output ###########################################################
-@Return FFC: is  string that repressent a vector, it is deffined as that : [count_eval, f, C1, C2,...,C9], the string formating does not include the brackets nor the coma, it's the needed formating for NOMAD, each element of the cetor is deffined as follow : 
-    FFC[1]  : count_eval : is a flag that indicat if the solver need to count this evaluation, in the case where an a priori constraints is violated, the eval is not couted ant this flag take the value 0 and the black box evaluation is stoped.
+@Return FFC: is a string that represents a vector, it is defined as that : [count_eval, f, C1, C2,...,C9], the string formatting does not include the brackets nor the comma, it's the needed formatting for NOMAD, each element of the vector is defined as follows:    FFC[1]  : count_eval : is a flag that indicat if the solver need to count this evaluation, in the case where an a priori constraints is violated, the eval is not couted ant this flag take the value 0 and the black box evaluation is stoped.
     FFC[2]  : f          : is the objective function value that represent the monatary cost caused by the choice of "x"
-    FFC[3]  : C1         : is an analitical a priori constraint that control the number of maintenance over the 40 years
-    FFC[4]  : C2         : is an analitical a priori constraint that control the number of hours of planned maintenance over the 40 years
-    FFC[5]  : C3         : is a constraint that control the sum of the failure probability of each type of failure
-    FFC[6]  : C4         : is a constraint that control the failure probability of each type of failure on which the probability is weighted to make sure noting goes over 10% and that most of them are below 5%
-    FFC[7]  : C5         : is a constraint that control the failure probability of each type of equipment on which the probability is weighted to make sure noting goes over 10% and that most of them are below 5%
-    FFC[8]  : C6         : is a constraint that control the total time of service interuption
-    FFC[9]  : C7         : is a constraint that control the number of houres of unplanned maintenance over 40 years
-    FFC[10] : C8         : is a constraint that control the total number of undelivered energy over 40 years
-    FFC[11] : C9         : is a constraint that control the number of undelivered energy to hospital over 40 years
+    FFC[3]  : C1         : is an analytical a priori constraint that controls the number of maintenance over the 40 years
+    FFC[4]  : C2         : is an analytical a priori constraint that controls the number of hours of planned maintenance over the 40 years
+    FFC[5]  : C3         : is a constraint that controls the sum of the failure probability of each type of failure
+    FFC[6]  : C4         : is a constraint that controls the failure probability of each type of failure on which the probability is weighted to make sure nothing goes over 10% and that most of them are below 5%
+    FFC[7]  : C5         : is a constraint that controls the failure probability of each type of equipment on which the probability is weighted to make sure nothing goes over 10% and that most of them are below 5%
+    FFC[8]  : C6         : is a constraint that controls the total time of service interruption
+    FFC[9]  : C7         : is a constraint that controls the number of houres of unplanned maintenance over 40 years
+    FFC[10] : C8         : is a constraint that controls the total number of undelivered energy over 40 years
+    FFC[11] : C9         : is a constraint that controls the amount of undelivered energy to hospitals over 40 years
 ###########################################################################################################################
 =#
 function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Float64, seedMC::Int64,; continueEval::Function = basicContinueEval, param::Int64 = 1, loggingTime::String = "false", N_MC_trials_per_interReturn::Int64 = 1000, halfTrialsReturn::Bool = true, N_MC_trials::Int64 = 10000, AnyParamForContinueEvalFunction = "", single_MC_info_return = "false")

@@ -24,7 +24,7 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
   * `basicContinueEval`: Always returns `true` (never interrupts the black-box execution). *--> Default value*
   * `printInterReturnContinueEval`: Logs every intermediate evaluation step into a `.txt` file and pauses, waiting for a user decision via an external file to either abort or resume the evaluation.
   * `DeterministicInfoContinueEval`: Aborts the execution (returns `false`) as soon as one of the 5 deterministic constraints is violated, saving computational overhead.
-  * `feasiblePtsFinderContinueEval`: *(Description pending)*
+  * `feasiblePtsFinderContinueEval`: Uses central limit theorem to find a feasible solution faster than at full fidelity. 
 
 * **`AnyParamForContinueEvalFunction`**: A string parameter passed directly to the custom `continueEval` Julia function. Some custom functions require specific initialization strings or flags here.
   * *Default value:* `""`
@@ -37,12 +37,13 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 
 * **`halfTrialsReturn`**: A boolean flag allowing additional intermediate returns at critical points when not all constraints are being evaluated at the exact same fidelity level. The respective fidelity levels of the constraint evaluations are tracked via an internal fidelity vector.
 
-* **`single_MC_info_return`**: *(Description pending)*
+* **`single_MC_info_return`**: A parameter that indicates if the user wants the program to print every single Monte-Carlo trial in a .txt file. If activated, it return those information in a file in a default file or in a spesified directory where you want to create the .txt file, you can also force a name to the .txt file.
 
 ---
 
 > A briefly described summary of the Micro-PRIAD needs is presented in the tests [directory](../../Tests/instance=1/ex_ARGS.txt).
 
+> **Note:** For specific use of builtin continueEval and their param reffer to the article.
 --------------------------------------------
 
 [Back to Main README](../../README.md)
