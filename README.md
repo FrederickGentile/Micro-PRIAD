@@ -33,6 +33,7 @@ To make sure you did everything right, you can try to run the following command 
 julia $MICRO_PRIAD_HOME/src/run.jl -test
 ```
 
+> **Note:** On Windows you need to initialize the `%MICRO_PRIAD_HOME%` and use it instead of `$MICRO_PRIAD_HOME`
 ## Execution
 ### Different ways to run Micro-PRIAD
 To run a simulation, there are four options.
