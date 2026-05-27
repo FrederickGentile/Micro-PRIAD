@@ -1,12 +1,8 @@
-include("Struct.jl")
-include("Param.jl")
-include("RiskModule.jl")
 
 #=
-The "serviceUnprovidedForCost" function takes a station and iterate on all the equipment with the name "name" and conpare their unavailability interval ("ui"), it generate a  
-    vector of unavailability corresponding to a vector of when all the equipment with the name "name" were unavailable. it then call the costOfUndeliveredEnergyCalculator to calculate the cost linked to those unavailabilities
+This function calculates the number of hours not in service by categories for a given station and a given equipment name. It compares the unavailability intervals (ui) of all equipments with the given name and calculates the intersection of these intervals to find the intervals during which all equipments with the given name are not in service. Then it categorizes these intervals by their duration and counts the number of hours not in service for each category.
 =#
-function serviceUnprovidedForCost(station::Station, name::String, ui, decal::Int64, param::Int64, nbVec)
+function nhnisbcCalculatorLVL2(station::Station, name::String, ui, decal::Int64)
     C8 = 0.0
     C9 = 0.0
     uiToCompare = []
@@ -18,19 +14,18 @@ function serviceUnprovidedForCost(station::Station, name::String, ui, decal::Int
             push!(uiToCompare, ui[decal + index])
         end
     end
-    cost = 0
-    nexti = []
+    nexti = [] # nexti := next interval
     if length(uiToCompare) == 1
         nexti = uiToCompare[1]
     elseif length(uiToCompare) != 0
-        i = uiToCompare[1]
+        i = uiToCompare[1] # i := interval
         nbToCompare = length(uiToCompare)
         index = 2
         while (nbToCompare != 1)
             nexti = []
             oi = uiToCompare[index]
             for elem in i 
-                for oelem in oi
+                for oelem in oi # o := other
                     if elem.lb <= oelem.lb && elem.ub >= oelem.ub
                         push!(nexti, Interval(oelem.lb, oelem.ub))
                     elseif oelem.lb <= elem.lb && oelem.ub >= elem.ub
@@ -47,37 +42,62 @@ function serviceUnprovidedForCost(station::Station, name::String, ui, decal::Int
             i = nexti
         end
     end
+    nbHoureNotInServiceByCategories = [0.0 for i in 1:6]
     for elem in nexti
-        houresNotInService = (elem.ub - elem.lb) * nbHoursInAYear
-        CCC = costOfUndeliveredEnergyCalculator(houresNotInService, station.Equipments[1].ClientsList, param, nbVec)
-        cost += CCC[1]
-        C8 += CCC[2]
-        C9 += CCC[3]
+        time = (elem.ub - elem.lb) * nbHoursInAYear
+        if time > 16
+            nbHoureNotInServiceByCategories[1] += time
+        elseif time > 8
+            nbHoureNotInServiceByCategories[2] += time
+        elseif time > 4
+            nbHoureNotInServiceByCategories[3] += time
+        elseif time > 1
+            nbHoureNotInServiceByCategories[4] += time
+        elseif time > 0.5
+            nbHoureNotInServiceByCategories[5] += time
+        else
+            nbHoureNotInServiceByCategories[6] += time
+        end
     end
-    return [cost, C8, C9]
+    return nbHoureNotInServiceByCategories
 end
 
 #=
-The "electricSimulator" function iterate on all the stations and then on all the equipment's name in the station to call the serviceUnprovidedForCost function
+This function calculates the number of hours not in service by categories for all equipments in all stations.
 =#
-function electricSimulator(stations::Vector{Station}, ui, nbStation, param::Int64, nbVec)
+function nhnisbcCalculator(stations::Vector{Station}, ui, nbStation)
 
     names = ["Transformateur élévateur de tension", "Isolateur haute tension",  "Câble haute tension", "Transformateur haute à moyenne tension", "Sectionneur haute tension", "Disjoncteur haute tesnsion", "Câble moyenne tension", "Isolateur moyenne tension", "Transformateur moyenne à basse tension", "Sectionneur moyenne tension", "Disjoncteur moyenne tension", "Câble basse tension"]
 
-    cost = 0
-    C8 = 0.0
-    C9 = 0.0
+    nbHoureNotInServiceByCategories = []
     decal = 0
     for s in 1:nbStation
+        nbHoureNotInServiceByCategories4eachStation = [0.0 for i in 1:6]
         for n in names
-            CCC = serviceUnprovidedForCost(stations[s], n, ui, decal, param, nbVec)
-            cost += CCC[1]
-            C8 += CCC[2]
-            C9 += CCC[3]
+            nbHoureNotInServiceByCategories4eachStation += nhnisbcCalculatorLVL2(stations[s], n, ui, decal)
+        end
+        for i in 1:6
+            push!(nbHoureNotInServiceByCategories, nbHoureNotInServiceByCategories4eachStation[i])
         end
         decal += length(stations[s].Equipments)
     end
-    return [cost, C8, C9]
+    return nbHoureNotInServiceByCategories
+end
+
+#=
+This function calculates the interpretation of the unavailability intervals (ui) calculating the number of hours not in service by categories for all ui in allui and then apply subSampling if needed.
+=#
+function interpretationOfUi(stations::Vector{Station}, allui, nbStation, subSampling::Function, AnyParamForSubSamplingFunction, timer, clk)
+    nhnisbc = [] # nhnisbc := nbHoureNotInServiceByCategories
+    for ui in allui
+        nbHoureNotInServiceByCategories = nhnisbcCalculator(stations, ui, nbStation) 
+        push!(nhnisbc, nbHoureNotInServiceByCategories)
+    end
+    timer += time() - clk
+    index = subSampling(nhnisbc, AnyParamForSubSamplingFunction)
+    NEWnhnisbc = nhnisbc[index]
+    clk = time()
+    return NEWnhnisbc
 end
 
 GC.gc()

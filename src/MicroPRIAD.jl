@@ -1,10 +1,14 @@
 include("Struct.jl")
 include("Param.jl")
 include("Initialisation.jl")
+
+include("ContinueEvalFunctions.jl")
+include("Single_MC_info_return_Functions.jl")
+include("SubSamplingFunctions.jl")
+
 include("UnavailabilitySimulator.jl")
 include("ElectricitySimulator.jl")
 include("RiskModule.jl")
-include("ContinueEvalFunctions.jl")
 
 #=
 The "checkInput" function checks if the input given by the solver respects the input format; if not, it prints an error message
@@ -84,12 +88,16 @@ The "MicroPRIAD" function is the heart of the black box, it links the initializa
 @Param ϕ: is the blackbox fidelity and is contained from 0 to 1.
 @Param seedMC: is the black box random seed used for the Monte-Carlo samples
 @Param continueEval: is the function that controls the intermediate return of the function and the constraints, it is initialized to "basicContinueEval" if not specified
+@Param AnyParamForContinueEvalFunction: is a string that can be used to give any parameter to the "continueEval" function, it is initialized to an empty string if not specified
 @Param param: argument indicates which instance is used to initialize the network; it can be set either to an instance [1, 2, 3] or to anything else to launch the BB with the customized parameters
 @Param loggingTime: argument indicates if the user wants the program to print a "timeLog.txt" file with the running time of each itterations.
 @Param N_MC_trials_per_interReturn: is the number of Monte-Carlo trials done at each intermediate return of the blackbox, it is set to 1000 by default
 @Param halfTrialsReturn: is a boolean that indicates if there is an additional intermediate return when half of the MC constraints are computed. 
     It is set to true by default, because between the first half and the second half of the constraints evaluation, there is a lot of time spent. It is even more true when N_MC_trials_per_interReturn is high.
 @Param single_MC_info_return: argument indicates if the user wants the program to print every single Monte-Carlo trial in a .txt file
+@Param AnyParamForSingle_MC_Info_ReturnFunction: is a string that can be used to give any parameter to the "single_MC_info_return" function, it is initialized to an empty string if not specified
+@Param subSampling: is the function used to do the subSampling if needed, it is initialized to "basicSubSampling" if not specified
+@Param AnyParamForSubSamplingFunction: is a string that can be used to give any parameter to the "subSampling" function, it is initialized to an empty string if not specified
 @Param x: is the maintenance's periodicity, the coordinate that the solver can interact with, it is defined as follows:
 
 for 28 inputs : for 15 inputs : for 13 inputs :
@@ -136,7 +144,7 @@ for 28 inputs : for 15 inputs : for 13 inputs :
     FFC[11] : C9         : is a constraint that controls the amount of undelivered energy to hospitals over 40 years
 ###########################################################################################################################
 =#
-function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Float64, seedMC::Int64,; continueEval::Function = basicContinueEval, param::Int64 = 1, loggingTime::String = "false", N_MC_trials_per_interReturn::Int64 = 1000, halfTrialsReturn::Bool = true, N_MC_trials::Int64 = 10000, AnyParamForContinueEvalFunction = "", single_MC_info_return = "false")
+function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Float64, seedMC::Int64; continueEval::Function = basicContinueEval, param::Int64 = 1, loggingTime::String = "false", N_MC_trials_per_interReturn::Int64 = 1000, halfTrialsReturn::Bool = true, N_MC_trials::Int64 = 10000, AnyParamForContinueEvalFunction = "", single_MC_info_return::Function = basic_single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction = "", subSampling::Function = basicSubSampling, AnyParamForSubSamplingFunction = "")                        
     timer = 0.0
     clk = time()
 
@@ -172,9 +180,21 @@ function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Fl
         @warn "The fidelity ϕ was truncated to the 4th digits after the comma, ϕ = $ϕ"
     end
 
-    if (single_MC_info_return != "false" && N_MC_trials_per_interReturn != 1)
-        @warn "The single_MC_info_return is activated, but N_MC_trials_per_interReturn is set to $N_MC_trials_per_interReturn. It has been set to 1 to avoid problems."
-        global N_MC_trials_per_interReturn = 1
+    if (subSampling != basicSubSampling)
+        if single_MC_info_return == print_single_MC_info_return
+            @warn "The single_MC_info_return function cannot be used with a subSampling function, the single_MC_info_return function will be set to print_single_MC_info_return_for_subSampling, that is compatible with the subSampling function. its output is:\nf C8 C9\n"
+            single_MC_info_return = print_single_MC_info_return_for_subSampling
+        elseif N_MC_trials_per_interReturn == 1
+            @warn "The N_MC_trials_per_interReturn parameter cannot be set to 1 because no subSampling could be done. The N_MC_trials_per_interReturn parameter will be set to 1000 by default.\n"
+            N_MC_trials_per_interReturn = 1000
+        end
+    elseif single_MC_info_return != basic_single_MC_info_return
+        if single_MC_info_return == print_single_MC_info_return_for_subSampling
+            @warn "The print_single_MC_info_return_for_subSampling function is curently without a subSampling function, it only returns (f C8 and C9)"
+        elseif N_MC_trials_per_interReturn != 1
+            @warn "The N_MC_trials_per_interReturn parameter is given $N_MC_trials_per_interReturn, but the constraint C6 and C7 cannot be returned correctly with this value. Use print_single_MC_info_return_for_subSampling or set N_MC_trials_per_interReturn to 1. It has been set to 1 to avoid problems.\n"
+            N_MC_trials_per_interReturn = 1
+        end
     end
 ###########################################################################################################################
 
@@ -242,8 +262,7 @@ function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}, ϕ::Fl
         end
     end
 ####################                
-
-    FFCT = UnavailSimulator(FFC, stations, ϕ, x, seedMC, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, N_MC_trials_per_interReturn, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return)
+    FFCT = UnavailSimulator(FFC, stations, ϕ, x, seedMC, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, N_MC_trials_per_interReturn, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)   
 
     FFC = FFCT[1:11]
     timer = FFCT[12]           

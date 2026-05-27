@@ -6,7 +6,13 @@ using Printf
 #=        value of the associated constraint or objective function of the vector FC was evaluated.                                             =#
 #################################################################################################################################################
 
-     
+function TEST_ContinueEval(ϕ, FC, str)
+    io = open(str, "a")
+    println(io, "$ϕ")
+    println(io, "$FC")
+    close(io)
+    return true
+end     
 
 #=
 the "basicContinueEval" function take a fidelity level vector, the objective function value and the constraint values and always return true, it is call to avoid dynamic interuption of the BB
@@ -239,3 +245,4 @@ function feasiblePtsFinderContinueEval(ϕ, FC, str)
     end
     return true
 end
+

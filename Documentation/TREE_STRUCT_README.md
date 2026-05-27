@@ -23,7 +23,7 @@
 │   │   ├── every_best_x.md
 │   │   └── Time_Illustration.pdf
 │   ├── Other_Tools
-│   │   ├── LHS_results
+│   │   ├── LHS_results(Mini-PRIAD)
 │   │   │   ├── input_length=13
 │   │   │   │   ├── instance=1
 │   │   │   │   │   ├── 10000phi=0
@@ -246,7 +246,7 @@
 │   │   │       │       ├── lhs_output.txt
 │   │   │       │       └── loggingTime.txt
 │   │   │       └── lhs_x.txt
-│   │   ├── NOMAD_results
+│   │   ├── NOMAD_results(Mini-PRIAD)
 │   │   │   ├── i=1_l=13_x0feas
 │   │   │   │   ├── ARGS.txt
 │   │   │   │   ├── bbe.0
@@ -385,7 +385,9 @@
 │   ├── Param.jl
 │   ├── RiskModule.jl
 │   ├── run.jl
+│   ├── Single_MC_info_return_Functions.jl
 │   ├── Struct.jl
+│   ├── SubSamplingFunctions.jl
 │   └── UnavailabilitySimulator.jl
 └── Tests
     ├── instance=1

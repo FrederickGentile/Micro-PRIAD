@@ -33,7 +33,10 @@ end
 #==# N_MC_trials_per_interReturn = 1000                                                                              #==#
 #==# halfTrialsReturn = true                                                                                         #==#
 #==# N_MC_trials = 10000                                                                                             #==#
-#==# single_MC_info_return = "false"                                                                                 #==#
+#==# single_MC_info_return = basic_single_MC_info_return # don't forget to include your .jl if you use YOUR function #==#
+#==# AnyParamForSingle_MC_Info_ReturnFunction = ""                                                                   #==#
+#==# subSampling = basicSubSampling  # don't forget to include your .jl if you use your continueEval julia function  #==#
+#==# AnyParamForSubSamplingFunction = ""                                                                             #==#
 #==###################################################################################################################==#
 #=======================================================================================================================#
 #########################################################################################################################
@@ -55,15 +58,19 @@ elseif length(ARGS) == 1
             input[i] = parse(Float64, splitLine[i])
         end
 
-        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=loggingTime))
+        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
     end
 elseif length(ARGS) == 2
     dir = @__DIR__
-    pathToContinueEvaljlFile = "$dir/MicroPRIAD.jl"
+    pathToContinueEvaljlFile = "$dir/ContinueEvalFunctions.jl"
     continueEval_name = "basicContinueEval"
+    pathToSingle_MC_Info_ReturnjlFile = "$dir/Single_MC_info_return_Functions.jl"
+    single_MC_info_return_name = "basic_single_MC_info_return"
+    pathToSubSamplingjlFile = "$dir/SubSamplingFunctions.jl"
+    subSampling_name = "basicSubSampling"
 
     io = open(ARGS[1], "r")
     lines = readlines(io)
@@ -88,9 +95,20 @@ elseif length(ARGS) == 2
                     if length(splitLine) == 3
                         global pathToContinueEvaljlFile = splitLine[2]
                         global continueEval_name = splitLine[3]
+                    elseif length(splitLine) == 2
+                        global continueEval_name = splitLine[2] 
+                    end
+                elseif splitLine[1] == "single MC_info_return"
+                    if length(splitLine) == 3
+                        global pathToSingle_MC_Info_ReturnjlFile = splitLine[2]
+                        global single_MC_info_return_name = splitLine[3]
+                    elseif length(splitLine) == 2
+                        global single_MC_info_return_name = splitLine[2]
                     end
                 elseif splitLine[1] == "AnyParamForContinueEvalFunction"
                     global AnyParamForContinueEvalFunction = join(splitLine[2:end], " ")
+                elseif splitLine[1] == "AnyParamForSingle_MC_Info_ReturnFunction"
+                    global AnyParamForSingle_MC_Info_ReturnFunction = join(splitLine[2:end], " ")
                 elseif splitLine[1] == "instance"
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                         @warn "The value of the instance was not integer in the ARGS_FILE, it was rounded"
@@ -123,15 +141,15 @@ elseif length(ARGS) == 2
                     else
                         global N_MC_trials = parse(Int64, splitLine[2])
                     end
-                elseif splitLine[1] == "single_MC_info_return"
-                    if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" || splitLine[2] == "1.0" || splitLine[2] == "0.0" 
-                        global single_MC_info_return = "$(parse(Bool, splitLine[2]))"
-                    elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
-                        global single_MC_info_return = splitLine[2]
-                    else
-                        global single_MC_info_return = "false"
-                        @warn "The value entered for the single_MC_info_return argument was not of a type asked, it was considered as \"false\""
+                elseif splitLine[1] == "subSampling"
+                    if length(splitLine) == 3
+                        global pathToSubSamplingjlFile = splitLine[2]
+                        global subSampling_name = splitLine[3]
+                    elseif length(splitLine) == 2
+                        global subSampling_name = splitLine[2]
                     end
+                elseif splitLine[1] == "AnyParamForSubSamplingFunction"
+                    global AnyParamForSubSamplingFunction = join(splitLine[2:end], " ")
                 else 
                     @warn "did not recognize the argument \"$(splitLine[1])\" in the ARGS_FILE, it was ignored"
                 end
@@ -151,11 +169,16 @@ elseif length(ARGS) == 2
         end
 
         include(pathToContinueEvaljlFile)
+        include(pathToSingle_MC_Info_ReturnjlFile)
 
         continueEval_symbol = Symbol(continueEval_name)
         continueEval = getfield(Main, continueEval_symbol)
+        single_MC_info_return_symbol = Symbol(single_MC_info_return_name)
+        single_MC_info_return = getfield(Main, single_MC_info_return_symbol)
+        subSampling_symbol = Symbol(subSampling_name)
+        subSampling = getfield(Main, subSampling_symbol)
 
-        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return))
+        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -164,8 +187,12 @@ elseif length(ARGS) == 2
 elseif length(ARGS) > 2
 
     dir = @__DIR__
-    pathToContinueEvaljlFile = "$dir/MicroPRIAD.jl"
+    pathToContinueEvaljlFile = "$dir/ContinueEvalFunctions.jl"
     continueEval_name = "basicContinueEval"
+    pathToSingle_MC_Info_ReturnjlFile = "$dir/Single_MC_info_return_Functions.jl"
+    single_MC_info_return_name = "basic_single_MC_info_return"
+    pathToSubSamplingjlFile = "$dir/SubSamplingFunctions.jl"
+    subSampling_name = "basicSubSampling"
 
     indexArr = findallParam(ARGS)
     for i in 1:length(indexArr)
@@ -190,9 +217,20 @@ elseif length(ARGS) > 2
             if length(splitLine) == 3
                 global pathToContinueEvaljlFile = splitLine[2]
                 global continueEval_name = splitLine[3]
+            elseif length(splitLine) == 2
+                global continueEval_name = splitLine[2]
+            end
+        elseif splitLine[1] == "single_MC_info_return"
+            if length(splitLine) == 3
+                global pathToSingle_MC_Info_ReturnjlFile = splitLine[2]
+                global single_MC_info_return_name = splitLine[3]
+            elseif length(splitLine) == 2
+                global single_MC_info_return_name = splitLine[2]
             end
         elseif splitLine[1] == "AnyParamForContinueEvalFunction"
             global AnyParamForContinueEvalFunction = join(splitLine[2:end], " ")
+        elseif splitLine[1] == "AnyParamForSingle_MC_Info_ReturnFunction"
+                    global AnyParamForSingle_MC_Info_ReturnFunction = join(splitLine[2:end], " ")
         elseif splitLine[1] == "instance"
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                 @warn "The value of the instance was not integer in the ARGS_FILE, it was rounded"
@@ -225,15 +263,15 @@ elseif length(ARGS) > 2
             else
                 global N_MC_trials = parse(Int64, splitLine[2])
             end
-        elseif splitLine[1] == "single_MC_info_return"
-             if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" || splitLine[2] == "1.0" || splitLine[2] == "0.0" 
-                global single_MC_info_return = "$(parse(Bool, splitLine[2]))"
-            elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
-                global single_MC_info_return = splitLine[2]
-            else
-                global single_MC_info_return = "false"
-                @warn "The value entered for the single_MC_info_return argument was not of a type asked, it was considered as \"false\""
+        elseif splitLine[1] == "subSampling"
+            if length(splitLine) == 3
+                global pathToSubSamplingjlFile = splitLine[2]
+                global subSampling_name = splitLine[3]
+            elseif length(splitLine) == 2
+                global subSampling_name = splitLine[2]
             end
+        elseif splitLine[1] == "AnyParamForSubSamplingFunction"
+            global AnyParamForSubSamplingFunction = join(splitLine[2:end], " ")
         else 
             @warn "did not recognize the argument \"$(splitLine[1])\", it was ignored"
         end
@@ -253,11 +291,16 @@ elseif length(ARGS) > 2
         end
 
         include(pathToContinueEvaljlFile)
+        include(pathToSingle_MC_Info_ReturnjlFile)
 
         continueEval_symbol = Symbol(continueEval_name)
         continueEval = getfield(Main, continueEval_symbol)
+        single_MC_info_return_symbol = Symbol(single_MC_info_return_name)
+        single_MC_info_return = getfield(Main, single_MC_info_return_symbol)
+        subSampling_symbol = Symbol(subSampling_name)
+        subSampling = getfield(Main, subSampling_symbol)
 
-        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return))
+        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -268,12 +311,13 @@ end
 
 if (needHelp == true)
     if "-test" ∈ ARGS || "-t" ∈ ARGS || "-tests" ∈ ARGS 
-        expectedOutput = "1.0 2.2390850610560286e8 -139.1111111111109 -214.0000000000002 189.2098832620489 353.3228016557553 236.4837418912764 631.4088235298689 1206.1882352941223 841.6711665446503 882.4156291146428"
-        if (MicroPRIAD([3 for i in 1:28], 0.0001, 0)) == expectedOutput
+        expectedOutput = "1.0 1.1874688616282518e8 -139.1111111111109 -214.0000000000002 189.2098832620489 353.3228016557553 236.4837418912764 72.31470588259435 369.58529411764437 217.70694873589787 257.01123356701964"
+        receivedOutput = MicroPRIAD([3 for i in 1:28], 0.0001, 0)
+        if receivedOutput == expectedOutput
             println("The test of the blackbox function gave the expected output, it seems that everything is working fine, you can now run your own simulation with the arguments you want!")
         else
             println("The test of the blackbox function did not give the expected output, please report this issue to us with the output you got and the version of Julia you are using")
-            println("\nThe expected output is \"$expectedOutput\" and your output is \"$(MicroPRIAD([3 for i in 1:28], 0.0001, 0))\"")
+            println("\nThe expected output is \n\"$expectedOutput\" and your output is \n\"$receivedOutput\"")
         end
     else
     print(" \n \nTo run a simulation, there are four options. you can eighter : \n

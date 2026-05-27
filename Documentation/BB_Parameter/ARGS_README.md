@@ -18,9 +18,9 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 * **`loggingTime`**: A parameter used for benchmarking. If set to `"false"`, time logging is deactivated. If set to a specific file path, it will create a time-log file where each line records the exact execution time of a single iteration.
   * *Default value:* `"false"`
 
-* **`continueEval`**: A path pointing to a custom Julia function that overrides Micro-PRIAD's native evaluation loop (which defaults to always returning `true`). This function intercepts intermediate objective function values and constraint metrics at specific fidelity levels to decide whether to early-terminate the black-box iteration or let it run to completion. It is triggered frequently at various fidelity milestones. In the `ARGS.txt` file, you must specify both the path to the `.jl` file and the specific name of the Julia function. 
+* **`continueEval`**: A parameter (function) that indicate if and how intermediary ouput are handled. This function intercepts intermediate objective function values and constraint metrics at specific fidelity levels to decide whether to early-terminate the black-box iteration or let it run to completion. It is triggered frequently at various fidelity milestones. In the `ARGS.txt` file, you must specify both the path to the `.jl` file and the specific name of the Julia function. 
 
-  Four built-in strategies are already implemented:
+  Four built-in functions are already implemented:
   * `basicContinueEval`: Always returns `true` (never interrupts the black-box execution). *--> Default value*
   * `printInterReturnContinueEval`: Logs every intermediate evaluation step into a `.txt` file and pauses, waiting for a user decision via an external file to either abort or resume the evaluation.
   * `DeterministicInfoContinueEval`: Aborts the execution (returns `false`) as soon as one of the 5 deterministic constraints is violated, saving computational overhead.
@@ -37,13 +37,26 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 
 * **`halfTrialsReturn`**: A boolean flag allowing additional intermediate returns at critical points when not all constraints are being evaluated at the exact same fidelity level. The respective fidelity levels of the constraint evaluations are tracked via an internal fidelity vector.
 
-* **`single_MC_info_return`**: A parameter that indicates if the user wants the program to print every single Monte-Carlo trial in a .txt file. If activated, it return those information in a file in a default file or in a spesified directory where you want to create the .txt file, you can also force a name to the .txt file.
+* **`single_MC_info_return`**: A parameter (function) that indicates if the user wants the program to print every single Monte-Carlo trial in a .txt file. In the `ARGS.txt` file, you must specify both the path to the `.jl` file and the specific name of the Julia function. 
 
+Tree built-in functions are already implemented:
+* `basic_single_MC_info_return`: Does not return anything. *--> Default value*
+* `print_single_MC_info_return`: Return the result of f C6 C7 C8 and C9 (stochastic objective function and constraints) in a .txt file. To use this function, N_MC_trials_per_interReturn must be set to 1.
+* `print_single_MC_info_return_for_subSampling`: Return the result of f C8 and C9 (objective function and constraints calculated in the second stage of the blackbox)
+
+* **`AnyParamForSingle_MC_Info_ReturnFunction`**: A string parameter passed direcly to the custom `single_MC_info_return` julia function. Built-in functions use this parameter to specify a path for the logging .txt file.
+* *Default value:* `""`
+
+* **`subSampling`**: A parameter (function) that indicate if and how the sub-sampling of stage one's output of the blackbox is done before giving it to the stage two of the blackbox. In the `ARGS.txt` file, you must specify both the path to the `.jl` file and the specific name of the Julia function. 
+One built-in function is implemented in this version:
+* `basicSubSampling`: Does not sub sample, it returns all sample. *--> Default value*
+
+
+> **Note:** the parameter flaged with (function) are functions that can be created by the user and given to Micro-PRIAD. For specific use of the bult-in function and their param refer to the article.
 ---
 
 > A briefly described summary of the Micro-PRIAD needs is presented in the tests [directory](../../Tests/instance=1/ex_ARGS.txt).
 
-> **Note:** For specific use of builtin continueEval and their param reffer to the article.
 --------------------------------------------
 
 [Back to Main README](../../README.md)

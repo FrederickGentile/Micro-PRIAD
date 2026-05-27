@@ -1,5 +1,7 @@
 include("Struct.jl")
 include("Param.jl")
+include("ElectricitySimulator.jl")
+include("RiskModule.jl")
 
 using Random
 
@@ -95,51 +97,17 @@ end
 #=
 The "intermidiateReturn" function takes the FFC (flag, function, constraint) object, the divider that corespond to how many MC trials have been done and the timer value and return the formated output for the MicroPRIAD function 
 =#
-function intermidiateReturn(FFC, divider, timer)
-    FFCT = Vector{Float64}(undef, 12)
-    FFCT[1:11] = deepcopy(FFC)
-    FFCT[2] = FFCT[2]/divider
-    FFCT[8] = FFCT[8]/divider - 500
-    FFCT[9] = FFCT[9]/divider - 500
-    FFCT[10] = FFCT[10]/divider - 500
-    FFCT[11] = FFCT[11]/divider
-    FFCT[11] -= 500
-    FFCT[12] = timer
-    return FFCT
-end
-
-function basic_single_MC_info_return(info, param)
-    for i in 1:5
-        if i != 1
-            info[i] = info[i] - 500
-        else
-            info[i]
-        end
-    end
-    formatedInfo = join(info, " ")
-    if param == "true"
-        dir = @__DIR__
-        splitDir = split(dir, "/") 
-        newSplitDir = Vector{SubString}(undef, length(splitDir) - 1)
-        for i in 1:(length(splitDir) - 1)
-            newSplitDir[i] = splitDir[i]
-        end
-        newDir = join(newSplitDir, "/")
-        io = open("$newDir/single_MC_info_log.txt", "a")
-        formatedInfo
-        write(io, "$formatedInfo\n")
-        close(io)
-    else
-        if param[end] == "/"
-            io = open("$(param)single_MC_info_log.txt", "a")
-        elseif param[end - 3:end] == ".txt"
-            io = open("$param", "a")
-        else
-            io = open("$(param)/single_MC_info_log.txt", "a")
-        end
-        write(io, "$formatedInfo\n")
-        close(io)
-    end
+function intermidiateReturn(FFCT, divider1, divider2, timer) # divider2 and FFCT[14] are redondant
+    FFCTformated = Vector{Float64}(undef, 14)
+    FFCTformated = deepcopy(FFCT)
+    FFCTformated[2] = FFCTformated[2]/divider2
+    FFCTformated[8] = FFCTformated[8]/divider1 - 500
+    FFCTformated[9] = FFCTformated[9]/divider1 - 500
+    FFCTformated[10] = FFCTformated[10]/divider2 - 500
+    FFCTformated[11] = FFCTformated[11]/divider2
+    FFCTformated[11] -= 500
+    FFCTformated[12] = timer
+    return FFCTformated
 end
 
 #=
@@ -150,7 +118,8 @@ The "splitUnavailSimulator" function is the function that run the MC trials, the
     @Param stations: is the vector of stations that reprensent the eletrical network,
     @Param FFC: is the (flag, function, constraint) object,
     @Param ϕ: is the fidelity level after the "nbEval" MC trials,
-    @Param costDivider: is the number of MC trials done before the "nbEval" MC trials,
+    @Param costDivider1: is the number of MC trials done before the "nbEval" MC trials,
+    @Param costDivider2: is the number of MC trials done on the second stage of the blackbox before the "nbEval" MC trials,
     @Param continueEval: is a function that can be anything, the user can chose what it does, but it decides wether you continue or not this iteration the BB at this point,
     @Param timer: represent he time used for running the simulation since the beggening of the iteration,
     @Param clk: is the result of time() function at the last call of continueEval,
@@ -161,7 +130,7 @@ The "splitUnavailSimulator" function is the function that run the MC trials, the
     @param single_MC_info_return: indicate to the program if and where to print information about every Monte Carlo trials
     @Return FFCT: (flag, function, constraint, timer) object after the MC trials if it was not interupted befor calculating the cost and the constraints linked to the cost.    
 =#
-function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::Int64, stations, FFC::Vector{Float64}, ϕ::Float64, costDivider::Int64, continueEval::Function, timer, clk, C1_2_3_4_6_7_8_9multiplier::Float64, param::Int64, nbVec, halfTrialsReturn::Bool, N_MC_trials::Int64, AnyParamForContinueEvalFunction, single_MC_info_return)
+function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::Int64, stations, FFC::Vector{Float64}, ϕ::Float64, costDivider1::Int64, costDivider2, continueEval::Function, timer, clk, C1_2_3_4_6_7_8_9multiplier::Float64, param::Int64, nbVec, halfTrialsReturn::Bool, N_MC_trials::Int64, AnyParamForContinueEvalFunction, single_MC_info_return::Function, AnyParamForSingle_MC_Info_ReturnFunction, subSampling::Function, AnyParamForSubSamplingFunction)
     ϕBefore = round((ϕ - nbEval/N_MC_trials), sigdigits = 4)
     nbHoursInAYear = 365.25 * 24
     allui = []
@@ -174,7 +143,7 @@ function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::In
     single_MC_info::Vector{Float64} = [0.0, 0.0, 0.0, 0.0, 0.0] # [f C6 C7 C8 C9] <==> S MC I
 
     if (nbEval == 0)
-        return vcat(FFC, timer, clk)
+        return vcat(FFC, timer, clk, costDivider2)
     end
 
     for eval in 1:nbEval
@@ -226,9 +195,9 @@ function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::In
                         if rand() <= f.DegradationProbability
                             first = y + rand()
                             ###### C7 #######
-                            gfrt = GetFailureRequiredTime(f, param)/nbEquipments * 12.6 * C1_2_3_4_6_7_8_9multiplier^0.121
-                            single_MC_info[3] += gfrt # S MC I
-                            FFC[9] += gfrt
+                            frt = GetFailureRequiredTime(f, param)/nbEquipments * 12.6 * C1_2_3_4_6_7_8_9multiplier^0.121
+                            single_MC_info[3] += frt # S MC I
+                            FFC[9] += frt
                             #################
                             I = Interval(first, first + GetFailureRequiredTime(f, param)/nbHoursInAYear)
                             push!(unavailIntervalsForFailures[e], I)
@@ -261,21 +230,22 @@ function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::In
             FFCcopied[2] = Inf
             FFCcopied[10:11] = [Inf, Inf]
         else
-            FFCcopied[2] = FFCcopied[2]/costDivider
+            FFCcopied[2] = FFCcopied[2]/costDivider2
         end
         FFCcopied[8] = FFCcopied[8]/(ϕ * N_MC_trials) - 500
         FFCcopied[9] = FFCcopied[9]/(ϕ * N_MC_trials) - 500
-        FFCcopied[10] = FFCcopied[10]/costDivider - 500
-        FFCcopied[11] = FFCcopied[11]/costDivider
+        FFCcopied[10] = FFCcopied[10]/costDivider2 - 500
+        FFCcopied[11] = FFCcopied[11]/costDivider2
         FFCcopied[11] -= 500
 
         timer += time() - clk
         ϕVec = [ϕBefore, ϕ, ϕ, ϕ, ϕ, ϕ, ϕ, ϕ, ϕBefore, ϕBefore]
         if continueEval(ϕVec, FFCcopied[2:11], AnyParamForContinueEvalFunction) == false
-            FFCT = Vector{Float64}(undef, 13)
+            FFCT = Vector{Float64}(undef, 14)
             FFCT[1:11] = FFCcopied
             FFCT[12] = timer 
             FFCT[13] = Inf64
+            FFCT[14] = costDivider2
             return FFCT
         end
         clk = time()
@@ -286,28 +256,35 @@ function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::In
     failureCost = totFailure * costByFailure
     FFC[2] = FFC[2] + maintenanceCost + failureCost
 
-    for ui in allui
-                                                                                    # acces the ui (unavailability intervals) of each MC trial here
-        CCC = electricSimulator(stations, ui, nbStation, param, nbVec)
-        FFC[2]  += CCC[1]
-        FFC[10] += CCC[2] * C1_2_3_4_6_7_8_9multiplier^0.689
-        FFC[11] += CCC[3] * C1_2_3_4_6_7_8_9multiplier^0.858
 
-        single_MC_info[1] = CCC[1] + maintenanceCost + failureCost      # S MC I
-        single_MC_info[4] = CCC[2] * C1_2_3_4_6_7_8_9multiplier^0.689   # S MC I
-        single_MC_info[5] = CCC[3] * C1_2_3_4_6_7_8_9multiplier^0.858   # S MC I
+    #######################################################################################################
+    nhnisbc = interpretationOfUi(stations, allui, nbStation, subSampling, AnyParamForSubSamplingFunction, timer, clk)
+    costDivider2 += length(nhnisbc)
+    for a in nhnisbc
+        single_MC_info[1] = 0.0
+        single_MC_info[4] = 0.0
+        single_MC_info[5] = 0.0
+        for s in 1:nbStation
+            CCC = riskModule(stations[s], a[(s-1)*6+1:(s-1)*6+6], nbVec)
+            FFC[2]  += CCC[1]
+            FFC[10] += CCC[2] * C1_2_3_4_6_7_8_9multiplier^0.689
+            FFC[11] += CCC[3] * C1_2_3_4_6_7_8_9multiplier^0.858
 
-         
+            single_MC_info[1] += CCC[1] + maintenanceCost + failureCost                      # S MC I
+            single_MC_info[4] += CCC[2] * C1_2_3_4_6_7_8_9multiplier^0.689                   # S MC I
+            single_MC_info[5] += CCC[3] * C1_2_3_4_6_7_8_9multiplier^0.858                   # S MC I
+        end
+        timer += time() - clk
+        single_MC_info_return(single_MC_info, AnyParamForSingle_MC_Info_ReturnFunction)      # S MC I
+        clk = time()
     end
+    #######################################################################################################
 
-    if single_MC_info_return != "false"                                    # S MC I
-        basic_single_MC_info_return(single_MC_info, single_MC_info_return) # S MC I
-    end                                                                    # S MC I
-
-    FFCT = Vector{Float64}(undef, 13)
+    FFCT = Vector{Float64}(undef, 14)
     FFCT[1:11] = FFC
     FFCT[12] = timer 
     FFCT[13] = clk
+    FFCT[14] = costDivider2
     return FFCT
 end
 
@@ -317,7 +294,7 @@ The "UnavailSimulator" function is the function that call the splitUnavailSimula
     the splitUnavailSimulator function.
 This function is the one that return the value of FFCT to the Main function MicroPRIAD
 =#
-function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::Float64, x::Union{Vector{Float64}, Vector{Int64}}, seedMC::Int64, continueEval::Function, timer, clk, C1_2_3_4_6_7_8_9multiplier::Float64, param::Int64, nbVec, N_MC_trials_per_interReturn::Int64, halfTrialsReturn::Bool, N_MC_trials::Int64, AnyParamForContinueEvalFunction, single_MC_info_return)  
+function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::Float64, x::Union{Vector{Float64}, Vector{Int64}}, seedMC::Int64, continueEval::Function, timer, clk, C1_2_3_4_6_7_8_9multiplier::Float64, param::Int64, nbVec, N_MC_trials_per_interReturn::Int64, halfTrialsReturn::Bool, N_MC_trials::Int64, AnyParamForContinueEvalFunction, single_MC_info_return::Function, AnyParamForSingle_MC_Info_ReturnFunction, subSampling::Function, AnyParamForSubSamplingFunction)  
     nbEquipments = nbVec[18]
     if x[1] == Inf64
         nbStation = sum(nbVec[8:10])
@@ -333,16 +310,16 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
 
     FFC[2] = 0.0
     FFC[8:11] = [0.0, 0.0, 0.0, 0.0]
-    FFCT = splitUnavailSimulator(1, nbEquipments, nbStation, stations, FFC, 1/N_MC_trials, 1, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return)
+    FFCT = splitUnavailSimulator(1, nbEquipments, nbStation, stations, FFC, 1/N_MC_trials, 1, 0, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)
     if FFCT[13] == Inf64
         return FFCT[1:12]
     end
     ########## intermediate return ############ 
     timer += time() - clk
-    FFCT = intermidiateReturn(FFC, 1, timer)
+    modFFCT = intermidiateReturn(FFCT, 1, FFCT[14], timer)
     ϕVec = [1/N_MC_trials for i in 1:10]
-    if continueEval(ϕVec, FFCT[2:11], AnyParamForContinueEvalFunction) == false
-        return FFCT[1:12]
+    if continueEval(ϕVec, modFFCT[2:11], AnyParamForContinueEvalFunction) == false
+        return modFFCT[1:12]
     end
     clk = time()
     ############################################
@@ -350,24 +327,24 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
         for r in 1:nbReturn
             if r == 1
 
-                FFCT = splitUnavailSimulator((N_MC_trials_per_interReturn - 1), nbEquipments, nbStation, stations, FFC, N_MC_trials_per_interReturn/N_MC_trials, 1 * N_MC_trials_per_interReturn, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return)
+                FFCT = splitUnavailSimulator((N_MC_trials_per_interReturn - 1), nbEquipments, nbStation, stations, FFC, N_MC_trials_per_interReturn/N_MC_trials, 1 * N_MC_trials_per_interReturn, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)
 
                 if FFCT[13] == Inf64
                     return FFCT[1:12]
                 end
             else
-                FFCT = splitUnavailSimulator(N_MC_trials_per_interReturn, nbEquipments, nbStation, stations, FFC, r * N_MC_trials_per_interReturn/N_MC_trials, r * N_MC_trials_per_interReturn, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return)
+                FFCT = splitUnavailSimulator(N_MC_trials_per_interReturn, nbEquipments, nbStation, stations, FFC, r * N_MC_trials_per_interReturn/N_MC_trials, r * N_MC_trials_per_interReturn, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)
                 if FFCT[13] == Inf64
                     return FFCT[1:12]
                 end
             end
-
             ######### intermediate return ############
             timer += time() - clk
-            FFCT = intermidiateReturn(FFC, N_MC_trials_per_interReturn * r, timer)
+            
+            modFFCT = intermidiateReturn(FFCT, N_MC_trials_per_interReturn * r, FFCT[14], timer)
             ϕVec = [r * N_MC_trials_per_interReturn/N_MC_trials for i in 1:10]
-            if continueEval(ϕVec, FFCT[2:11], AnyParamForContinueEvalFunction) == false
-                return FFCT[1:12]
+            if continueEval(ϕVec, modFFCT[2:11], AnyParamForContinueEvalFunction) == false
+                return modFFCT[1:12]
             end
             clk = time()
             ############################################
@@ -377,20 +354,20 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
     if (nbEval - N_MC_trials_per_interReturn * nbReturn) != 0 && nbEval != 1
         if nbReturn == 0
             nbEval -= 1
-            FFCT = splitUnavailSimulator((nbEval - N_MC_trials_per_interReturn * nbReturn), nbEquipments, nbStation, stations, FFC, ϕ, N_MC_trials_per_interReturn * nbReturn,  continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return)    
+            FFCT = splitUnavailSimulator((nbEval - N_MC_trials_per_interReturn * nbReturn), nbEquipments, nbStation, stations, FFC, ϕ, N_MC_trials_per_interReturn * nbReturn, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)    
             nbEval += 1
         else
-            FFCT = splitUnavailSimulator((nbEval - N_MC_trials_per_interReturn * nbReturn), nbEquipments, nbStation, stations, FFC, ϕ, N_MC_trials_per_interReturn * nbReturn,  continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return)    
+            FFCT = splitUnavailSimulator((nbEval - N_MC_trials_per_interReturn * nbReturn), nbEquipments, nbStation, stations, FFC, ϕ, N_MC_trials_per_interReturn * nbReturn, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, param, nbVec, halfTrialsReturn, N_MC_trials, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)    
         end
         if FFCT[13] == Inf64
             return FFCT[1:12]
         end
         ######## intermediate return ############
         timer += time() - clk
-        FFCT = intermidiateReturn(FFC, nbEval, timer)
+        modFFCT = intermidiateReturn(FFCT, nbEval, FFCT[14], timer)
         ϕVec = [ϕ for i in 1:10]
-        if continueEval(ϕVec, FFCT[2:11], AnyParamForContinueEvalFunction) ==  false 
-            return FFCT[1:12]
+        if continueEval(ϕVec, modFFCT[2:11], AnyParamForContinueEvalFunction) ==  false 
+            return modFFCT[1:12]
         end
         clk = time()
         ############################################
@@ -398,7 +375,7 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
 
     ############# return ################
     timer += time() - clk
-    FFCT = intermidiateReturn(FFC, nbEval, timer)
+    FFCT = intermidiateReturn(FFCT, nbEval, FFCT[14], timer)
     return FFCT[1:12]
     #####################################
 end
