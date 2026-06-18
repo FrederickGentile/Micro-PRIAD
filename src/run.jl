@@ -14,7 +14,7 @@ end
 function findallParam(vec)
     arr::Vector{Int64} = []
     for i in 1:length(vec)
-        if (vec[i] ==  "-instance" || vec[i] == "-fidelity" || vec[i] == "-seed" || vec[i] == "-continueEval" || vec[i] == "-AnyParamForContinueEvalFunction" || vec[i] == "-loggingTime" || vec[i] == "-N_MC_trials_per_interReturn" || vec[i] == "-halfTrialsReturn" || vec[i] == "-N_MC_trials" || vec[i] == "-single_MC_info_return")
+        if (vec[i] ==  "-PGinstance" || vec[i] == "-fidelity" || vec[i] == "-seed" || vec[i] == "-continueEval" || vec[i] == "-AnyParamForContinueEvalFunction" || vec[i] == "-loggingTime" || vec[i] == "-eta" || vec[i] == "-halfTrialsReturn" || vec[i] == "-N" || vec[i] == "-single_MC_info_return")
             push!(arr, i)
         end   
     end
@@ -25,14 +25,14 @@ end
 #===================== arguments to modify if you chose to call the blackbox with only a x.txt file ====================#
 #==###################################################################################################################==#
 #==# ϕ = 1.0                                                                                                         #==#
-#==# seedMC = 0                                                                                                      #==#
+#==# seed = 0                                                                                                        #==#
 #==# continueEval = basicContinueEval # don't forget to include your .jl if you use your continueEval julia function #==#
 #==# AnyParamForContinueEvalFunction = ""                                                                            #==#
-#==# instance = 1                                                                                                    #==#
+#==# PGinstance = 1                                                                                                  #==#
 #==# loggingTime = "false"                                                                                           #==#
-#==# N_MC_trials_per_interReturn = 1000                                                                              #==#
+#==# eta = 1000                                                                                                      #==#
 #==# halfTrialsReturn = true                                                                                         #==#
-#==# N_MC_trials = 10000                                                                                             #==#
+#==# N = 10000                                                                                                       #==#
 #==# single_MC_info_return = basic_single_MC_info_return # don't forget to include your .jl if you use YOUR function #==#
 #==# AnyParamForSingle_MC_Info_ReturnFunction = ""                                                                   #==#
 #==# subSampling = basicSubSampling  # don't forget to include your .jl if you use your continueEval julia function  #==#
@@ -58,7 +58,7 @@ elseif length(ARGS) == 1
             input[i] = parse(Float64, splitLine[i])
         end
 
-        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
+        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -90,7 +90,7 @@ elseif length(ARGS) == 2
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                         @warn "The value of the seed was not integer in the ARGS_FILE, it was rounded"
                     end
-                    global seedMC = Int(round(parse(Float64, splitLine[2])))
+                    global seed = Int(round(parse(Float64, splitLine[2])))
                 elseif splitLine[1] == "continueEval"
                     if length(splitLine) == 3
                         global pathToContinueEvaljlFile = splitLine[2]
@@ -109,11 +109,11 @@ elseif length(ARGS) == 2
                     global AnyParamForContinueEvalFunction = join(splitLine[2:end], " ")
                 elseif splitLine[1] == "AnyParamForSingle_MC_Info_ReturnFunction"
                     global AnyParamForSingle_MC_Info_ReturnFunction = join(splitLine[2:end], " ")
-                elseif splitLine[1] == "instance"
+                elseif splitLine[1] == "PGinstance"
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
-                        @warn "The value of the instance was not integer in the ARGS_FILE, it was rounded"
+                        @warn "The value of the PGinstance was not integer in the ARGS_FILE, it was rounded"
                     end
-                    global instance = parse(Int64, splitLine[2])
+                    global PGinstance = parse(Int64, splitLine[2])
                 elseif splitLine[1] == "loggingTime"
                     if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
                         global loggingTime = "$(parse(Bool, splitLine[2]))"
@@ -123,11 +123,11 @@ elseif length(ARGS) == 2
                         global loggingTime = "false"
                         @warn "The value entered for the loggingTime argument was not of a type asked, it was considered as \"false\""
                     end
-                elseif splitLine[1] == "N_MC_trials_per_interReturn"
+                elseif splitLine[1] == "eta"
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
-                        @warn "The value of N_MC_trials_per_interReturn was not integer in the ARGS_FILE, it was rounded"
+                        @warn "The value of eta was not integer in the ARGS_FILE, it was rounded"
                     end
-                    global N_MC_trials_per_interReturn = Int64(round(parse(Float64, splitLine[2])))
+                    global eta = Int64(round(parse(Float64, splitLine[2])))
                 elseif splitLine[1] == "halfTrialsReturn"
                     if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
                         global halfTrialsReturn = parse(Bool, splitLine[2])
@@ -135,11 +135,11 @@ elseif length(ARGS) == 2
                         global halfTrialsReturn = true
                         @warn "The value entered for the halfTrialsReturn argument was not of a type asked, it was considered as true"
                     end
-                elseif splitLine[1] == "N_MC_trials"
+                elseif splitLine[1] == "N"
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
-                        @warn "The value of the N_MC_trials was not integer in the ARGS_FILE, it was put to default value 10000"
+                        @warn "The value of the N was not integer in the ARGS_FILE, it was put to default value 10000"
                     else
-                        global N_MC_trials = parse(Int64, splitLine[2])
+                        global N = parse(Int64, splitLine[2])
                     end
                 elseif splitLine[1] == "subSampling"
                     if length(splitLine) == 3
@@ -178,7 +178,7 @@ elseif length(ARGS) == 2
         subSampling_symbol = Symbol(subSampling_name)
         subSampling = getfield(Main, subSampling_symbol)
 
-        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
+        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -212,7 +212,7 @@ elseif length(ARGS) > 2
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                 @warn "The value of the seed was not integer in the ARGS_FILE, it was rounded"
             end
-            global seedMC = Int(round(parse(Float64, splitLine[2])))
+            global seed = Int(round(parse(Float64, splitLine[2])))
         elseif splitLine[1] == "continueEval"
             if length(splitLine) == 3
                 global pathToContinueEvaljlFile = splitLine[2]
@@ -231,11 +231,11 @@ elseif length(ARGS) > 2
             global AnyParamForContinueEvalFunction = join(splitLine[2:end], " ")
         elseif splitLine[1] == "AnyParamForSingle_MC_Info_ReturnFunction"
                     global AnyParamForSingle_MC_Info_ReturnFunction = join(splitLine[2:end], " ")
-        elseif splitLine[1] == "instance"
+        elseif splitLine[1] == "PGinstance"
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
-                @warn "The value of the instance was not integer in the ARGS_FILE, it was rounded"
+                @warn "The value of the PGinstance was not integer in the ARGS_FILE, it was rounded"
             end
-            global instance = parse(Int64, splitLine[2])
+            global PGinstance = parse(Int64, splitLine[2])
         elseif splitLine[1] == "loggingTime"
             if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
                 global loggingTime = "$(parse(Bool, splitLine[2]))"
@@ -245,11 +245,11 @@ elseif length(ARGS) > 2
                 global loggingTime = "false"
                 @warn "The value entered for the loggingTime argument was not of a type asked, it was considered as \"false\""
             end
-        elseif splitLine[1] == "N_MC_trials_per_interReturn"
+        elseif splitLine[1] == "eta"
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
-                @warn "The value of N_MC_trials_per_interReturn was not integer in the ARGS_FILE, it was rounded"
+                @warn "The value of eta was not integer in the ARGS_FILE, it was rounded"
             end
-            global N_MC_trials_per_interReturn = Int64(round(parse(Float64, splitLine[2])))
+            global eta = Int64(round(parse(Float64, splitLine[2])))
         elseif splitLine[1] == "halfTrialsReturn"
             if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" || splitLine[2] == "1.0" || splitLine[2] == "0.0"
                 global halfTrialsReturn = parse(Bool, splitLine[2])
@@ -257,11 +257,11 @@ elseif length(ARGS) > 2
                 global halfTrialsReturn = true
                 @warn "The value entered for the halfTrialsReturn argument was not of a type asked, it was considered as true"
             end
-        elseif splitLine[1] == "N_MC_trials"
+        elseif splitLine[1] == "N"
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
-                @warn "The value of the N_MC_trials was not integer in the ARGS_FILE, it was put to default value 10000"
+                @warn "The value of the N was not integer in the ARGS_FILE, it was put to default value 10000"
             else
-                global N_MC_trials = parse(Int64, splitLine[2])
+                global N = parse(Int64, splitLine[2])
             end
         elseif splitLine[1] == "subSampling"
             if length(splitLine) == 3
@@ -300,7 +300,7 @@ elseif length(ARGS) > 2
         subSampling_symbol = Symbol(subSampling_name)
         subSampling = getfield(Main, subSampling_symbol)
 
-        println(MicroPRIAD(input, ϕ, seedMC, continueEval=continueEval, param=instance, loggingTime=String(loggingTime), N_MC_trials_per_interReturn=N_MC_trials_per_interReturn, halfTrialsReturn=halfTrialsReturn, N_MC_trials=N_MC_trials, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
+        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -311,13 +311,13 @@ end
 
 if (needHelp == true)
     if "-test" ∈ ARGS || "-t" ∈ ARGS || "-tests" ∈ ARGS 
-        expectedOutput = "1.0 1.1874688616282518e8 -139.1111111111109 -214.0000000000002 189.2098832620489 353.3228016557553 236.4837418912764 72.31470588259435 369.58529411764437 217.70694873589787 257.01123356701964"
-        receivedOutput = MicroPRIAD([3 for i in 1:28], 0.0001, 0)
+        expectedOutput = "1.0 9.677484448184891e7 -139.1111111111109 -214.0000000000002 189.2098832620489 353.3228016557553 236.4837418912764 80.8352545241803 370.97579692795557 161.16992582972546 143.4715928610143"
+        receivedOutput = MicroPRIAD([3 for i in 1:28], ϕ=0.0001, seed=0)
         if receivedOutput == expectedOutput
             println("The test of the blackbox function gave the expected output, it seems that everything is working fine, you can now run your own simulation with the arguments you want!")
         else
             println("The test of the blackbox function did not give the expected output, please report this issue to us with the output you got and the version of Julia you are using")
-            println("\nThe expected output is \n\"$expectedOutput\" and your output is \n\"$receivedOutput\"")
+            println("\nThe expected output is \n\"$expectedOutput\"\n and your output is \n\"$receivedOutput\"")
         end
     else
     print(" \n \nTo run a simulation, there are four options. you can eighter : \n

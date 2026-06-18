@@ -5,7 +5,7 @@ This function calculates the number of hours not in service by categories for a 
 function nhnisbcCalculatorLVL2(station::Station, name::String, ui, decal::Int64)
     C8 = 0.0
     C9 = 0.0
-    uiToCompare = []
+    uiToCompare = Vector{Vector{Interval}}()
     index = 0
     nbHoursInAYear = 365.25 * 24
     for e in station.Equipments
@@ -14,7 +14,7 @@ function nhnisbcCalculatorLVL2(station::Station, name::String, ui, decal::Int64)
             push!(uiToCompare, ui[decal + index])
         end
     end
-    nexti = [] # nexti := next interval
+    nexti = Interval[] # nexti := next interval
     if length(uiToCompare) == 1
         nexti = uiToCompare[1]
     elseif length(uiToCompare) != 0
@@ -22,7 +22,7 @@ function nhnisbcCalculatorLVL2(station::Station, name::String, ui, decal::Int64)
         nbToCompare = length(uiToCompare)
         index = 2
         while (nbToCompare != 1)
-            nexti = []
+            nexti = Interval[]
             oi = uiToCompare[index]
             for elem in i 
                 for oelem in oi # o := other
@@ -43,7 +43,7 @@ function nhnisbcCalculatorLVL2(station::Station, name::String, ui, decal::Int64)
         end
     end
     nbHoureNotInServiceByCategories = [0.0 for i in 1:6]
-    for elem in nexti
+    for elem in nexti 
         time = (elem.ub - elem.lb) * nbHoursInAYear
         if time > 16
             nbHoureNotInServiceByCategories[1] += time
@@ -69,7 +69,7 @@ function nhnisbcCalculator(stations::Vector{Station}, ui, nbStation)
 
     names = ["Transformateur élévateur de tension", "Isolateur haute tension",  "Câble haute tension", "Transformateur haute à moyenne tension", "Sectionneur haute tension", "Disjoncteur haute tesnsion", "Câble moyenne tension", "Isolateur moyenne tension", "Transformateur moyenne à basse tension", "Sectionneur moyenne tension", "Disjoncteur moyenne tension", "Câble basse tension"]
 
-    nbHoureNotInServiceByCategories = []
+    nbHoureNotInServiceByCategories = Vector{Float64}()
     decal = 0
     for s in 1:nbStation
         nbHoureNotInServiceByCategories4eachStation = [0.0 for i in 1:6]
@@ -88,14 +88,14 @@ end
 This function calculates the interpretation of the unavailability intervals (ui) calculating the number of hours not in service by categories for all ui in allui and then apply subSampling if needed.
 =#
 function interpretationOfUi(stations::Vector{Station}, allui, nbStation, subSampling::Function, AnyParamForSubSamplingFunction, timer, clk)
-    nhnisbc = [] # nhnisbc := nbHoureNotInServiceByCategories
+    hoursVec = Vector{Vector{Float64}}() # hoursVec := nbHoureNotInServiceByCategories
     for ui in allui
         nbHoureNotInServiceByCategories = nhnisbcCalculator(stations, ui, nbStation) 
-        push!(nhnisbc, nbHoureNotInServiceByCategories)
+        push!(hoursVec, nbHoureNotInServiceByCategories)
     end
     timer += time() - clk
-    index = subSampling(nhnisbc, AnyParamForSubSamplingFunction)
-    NEWnhnisbc = nhnisbc[index]
+    index = subSampling(hoursVec, AnyParamForSubSamplingFunction)
+    NEWnhnisbc = hoursVec[index]
     clk = time()
     return NEWnhnisbc
 end

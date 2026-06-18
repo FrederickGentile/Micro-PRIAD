@@ -26,7 +26,7 @@ function print_single_MC_info_return(info, param)
         if param[end] == "/"
             io = open("$(param)single_MC_info_log.txt", "a")
         elseif param[end - 3:end] == ".txt"
-            io = open("$dir/$param", "a")
+            io = open("$param", "a")
         else
             io = open("$(param)/single_MC_info_log.txt", "a")
         end

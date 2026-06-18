@@ -10,7 +10,7 @@
 #                                                                                                                    #
 # - seed: you may give seed a positive integer number including 0                                                    #
 #                                                                                                                    #
-# - instance: you may give instance 1, 2 or 3                                                                        #
+# - PGinstance: you may give instance 1, 2 or 3                                                                      #
 #                                                                                                                    #
 # - loggingTime: you may give a boolean answer like 0, 1, false or true to activate or desactivate the loggingTime   #
 # function that create a file in the $Micro_PRIAD_HOME directory or direcly spesify the directory where you want to  #
@@ -20,7 +20,7 @@
 # - halfTrialsReturn: you may give a boolean 0 or 1, this control if a intermediate returen is done before entering  #
 #   ElectricSimulation module.                                                                                       #
 #                                                                                                                    #
-# - N_MC_trials: you may give an integer to change the number of MC trials representing the "truth"                  #
+# - N: you may give an integer to change the number of MC trials representing the "truth"                            #
 #                                                                                                                    #
 # - single_MC_info_return: you may give a boolean answer like 0, 1, false or true to activate or desactivate the     #
 # return of information about every Monte Carlo trials. If activated, it return those information in a file in the   #
@@ -29,8 +29,8 @@
 #                                                                                                                    #
 # - continueEval: you may give two arguments that are the two folowing, argument for the continueEval Function are   # 
 #   passed via AnyParamForContinueEvalFunction                                                                       # 
-#	* the first argument is the directory of the .jl file containing the customize continueEval julia function   #
-#	* the second argument is the name of the customized Julia function                                           #
+#	* the first argument is the directory of the .jl file containing the customize continueEval julia function       #
+#	* the second argument is the name of the customized Julia function                                               #
 #    + you may use the basicContinueEval that simply return true (TO USE if you are not inerested in the             #
 #      intermidite return).                                                                                          #
 #    + you can also use a builted in continueEval (printInterReturnConinueEval) that communicate via a .txt file     #
@@ -43,7 +43,7 @@
 # - AnyParamForContinueEvalFunction: you may give as many arguments as you want that your continueEval function      #
 #   will handles it self. Some exemple for the builted in continueEvalfunction are shown in the commented line below #
 #                                                                                                                    #
-# - N_MC_trials_per_interReturn: you may give a integer between 1 and 10000, this argument contrôl how often the     #
+# - eta: you may give a integer between 1 and 10000, this argument contrôl how often the                             #
 #   continueEval function is called.                                                                                 #
 #                                                                                                                    #
 #   Note : the last example in the commented lines will not work with NOMAD, you must implement a algorithm          #
@@ -57,7 +57,7 @@ fidelity 1.0
 seed 0
 
 
-instance 2
+PGinstance 2
 
 
 loggingTime false
@@ -67,13 +67,13 @@ loggingTime false
 # loggingTime ../result
 
 
-N_MC_trials_per_interReturn 1000
+eta 1000
 
 
 halfTrialsReturn 1
 
 
-N_MC_trials 10000
+N 10000
 
 
 single_MC_info_return false

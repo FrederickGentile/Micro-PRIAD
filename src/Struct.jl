@@ -7,7 +7,7 @@ the "Client" struct descibe a client:
     the algorithm make the difference between the small/medium entreprises and the large entreprises by their "AnnualConsumption" argument below or over 50MWh
     the "AnnualConsumption" also describe the quantity of energy not delivered to a client if it has been out of service for X hours
 =#
-mutable struct Client
+struct Client
     AnnualConsumption::Float64 
     MustBeInService::Bool  
     Residential::Bool
@@ -34,7 +34,7 @@ the "Maintenance" struct describe a maintenance type and it efficiency towards e
     the "Failure" argument is a vector of the failure that the maintenance affect
     the "Efficiency" argument is a vector of the same length as the "Failure" vector and indicate the efficency of the maintenance on that failure type, it can take the values [1, 2, 3, 4] := [N, L, M, H] coresponding to the PRIAD publication from 2025, but it is still unuse in this version of the BB
 =#
-mutable struct Maintenance
+struct Maintenance
     Periodicity::Float64                              
         Efficiency::Vector{Int64}
     Failure::Vector{Failure}

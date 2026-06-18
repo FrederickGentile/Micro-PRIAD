@@ -1,8 +1,8 @@
 ## Running Time
 
-The running time for each input length of each instance at different fidelity levels is logged in the table below. This data is also illustrated as a plot in the [time_illustration](./Time_Illustration.pdf) file within this directory.
+The running time for each input length of each PGinstance at different fidelity levels is logged in the table below. This data is also illustrated as a plot in the [time_illustration](./Time_Illustration.pdf) file within this directory.
 
-**Legend:** `i`: instance, `l`: input dimensions
+**Legend:** `i`: PGinstance, `l`: input dimensions
 
 | Fidelity | 0.0001 | 0.001 | 0.01 | 0.1 | 1.0 |
 |---|---|---|---|---|---|
@@ -20,31 +20,31 @@ The fidelity in this table represents the number of Monte Carlo (MC) trials perf
 
 ## Best Objective Function Value Found
 
-Here is the list of the best-known values of the objective function for the three instances, obtained using a default seed of zero:
+Here is the list of the best-known values of the objective function for the three power grid instances, obtained using a default seed of zero:
 
 ```text
-    Instance 1 with 13-dimension input:     4.180517980583656e7
-    Instance 1 with 15-dimension input:     7.797991073588863e7
-    Instance 1 with 28-dimension input:     6.848504620756665e7
+    PGinstance 1 with 13-dimension input:     4.180517980583656e7
+    PGinstance 1 with 15-dimension input:     7.797991073588863e7
+    PGinstance 1 with 28-dimension input:     6.848504620756665e7
 
-    Instance 2 with 13-dimension input:     5.461390597121722e7
-    Instance 2 with 15-dimension input:     9.151043287090775e7
-    Instance 2 with 28-dimension input:     8.888706619131872e7
+    PGinstance 2 with 13-dimension input:     5.461390597121722e7
+    PGinstance 2 with 15-dimension input:     9.151043287090775e7
+    PGinstance 2 with 28-dimension input:     8.888706619131872e7
 
-    Instance 3 with 13-dimension input:     1.849174377718951e8
-    Instance 3 with 15-dimension input:     3.026649388391754e8
-    Instance 3 with 28-dimension input:     3.024380841101112e8
+    PGinstance 3 with 13-dimension input:     1.849174377718951e8
+    PGinstance 3 with 15-dimension input:     3.026649388391754e8
+    PGinstance 3 with 28-dimension input:     3.024380841101112e8
 ```
 
-The vector coordinate associated with the best value found is located in the `best_known_x.txt` file inside the `$MICRO_PRIAD_HOME/Tests` directory. Alternatively, a complete list of the best points for every instance is available in the [every_best_x](./every_best_x.md) file within this directory.
+The vector coordinate associated with the best value found is located in the `best_known_x.txt` file inside the `$MICRO_PRIAD_HOME/Tests` directory. Alternatively, a complete list of the best points for every PGinstance is available in the [every_best_x](./every_best_x.md) file within this directory.
 
 ## General Behavior
 
 The general behavior of the function is illustrated through plots where all but one input dimension are held fixed. These plots can be found in the `Behaviour_figures` folder in this directory. The table below provides direct links to the corresponding plots:
 
-**Legend:** `i`: instance, `l`: input dimensions
+**Legend:** `i`: PGinstance, `l`: input dimensions
 
-| Instance | Input Length | Link |
+| PGinstance | Input Length | Link |
 |---|---|---|
 | i = 1 | l = 28 | [Behaviour_i1l28](./Behaviour_figures/Comportement_i1l28.pdf) |
 | i = 1 | l = 15 | [Behaviour_i1l15](./Behaviour_figures/Comportement_i1l15.pdf) |

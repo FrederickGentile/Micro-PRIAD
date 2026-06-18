@@ -12,7 +12,7 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 * **`seed`**: An integer representing the random seed used for the Monte Carlo trials. Changing the seed will cause Micro-PRIAD to return different results due to varying random trial sequences.
   * *Default value:* `0`
 
-* **`instance`**: An integer that can take the values `[1, 2, 3]` to select a specific problem instance. This argument controls the type of electrical network configuration used inside the black-box, but it does not change the number of constraints or affect the input vector length.
+* **`PGinstance`**: An integer that can take the values `[1, 2, 3]` to select a specific problem PGinstance. This argument controls the type of electrical network configuration used inside the black-box, but it does not change the number of constraints or affect the input vector length.
   * *Default value:* `1`
 
 * **`loggingTime`**: A parameter used for benchmarking. If set to `"false"`, time logging is deactivated. If set to a specific file path, it will create a time-log file where each line records the exact execution time of a single iteration.
@@ -29,10 +29,10 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 * **`AnyParamForContinueEvalFunction`**: A string parameter passed directly to the custom `continueEval` Julia function. Some custom functions require specific initialization strings or flags here.
   * *Default value:* `""`
 
-* **`N_MC_trials`**: Explicitly fixes the maximum number of Monte Carlo trials, which represents the ground-truth benchmark accuracy.
+* **`N`**: Explicitly fixes the maximum number of Monte Carlo trials, which represents the ground-truth benchmark accuracy.
   * *Default value:* `10000`
 
-* **`N_MC_trials_per_interReturn`**: Controls the sampling frequency of intermediate status returns.
+* **`eta`**: Controls the sampling frequency of intermediate status returns.
   * *Default value:* `1000`
 
 * **`halfTrialsReturn`**: A boolean flag allowing additional intermediate returns at critical points when not all constraints are being evaluated at the exact same fidelity level. The respective fidelity levels of the constraint evaluations are tracked via an internal fidelity vector.
@@ -41,7 +41,7 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 
 Tree built-in functions are already implemented:
 * `basic_single_MC_info_return`: Does not return anything. *--> Default value*
-* `print_single_MC_info_return`: Return the result of f C6 C7 C8 and C9 (stochastic objective function and constraints) in a .txt file. To use this function, N_MC_trials_per_interReturn must be set to 1.
+* `print_single_MC_info_return`: Return the result of f C6 C7 C8 and C9 (stochastic objective function and constraints) in a .txt file. To use this function, `eta` must be set to 1.
 * `print_single_MC_info_return_for_subSampling`: Return the result of f C8 and C9 (objective function and constraints calculated in the second stage of the blackbox)
 
 * **`AnyParamForSingle_MC_Info_ReturnFunction`**: A string parameter passed direcly to the custom `single_MC_info_return` julia function. Built-in functions use this parameter to specify a path for the logging .txt file.

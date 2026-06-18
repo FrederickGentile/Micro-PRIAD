@@ -22,4 +22,4 @@ halfTrialsReturn 1
 N_MC_trials 10000
 
 
-single_MC_info_return false
+single_MC_info_return ./../src/Single_MC_info_return_Functions.jl basic_single_MC_info_return
