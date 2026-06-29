@@ -4,7 +4,7 @@
 #                  
 # length(ARGS) > 2 => -@param1 value1 -@param2 value2 ... x.txt 
 
-
+using Random
 include("MicroPRIAD.jl")
 
 function print_rgb(r, g, b, t)
@@ -44,7 +44,8 @@ end
 needHelp = true
 if "-help" ∈ ARGS || "-h" ∈ ARGS || "-test" ∈ ARGS || "-t" ∈ ARGS || "-tests" ∈ ARGS
     global needHelp = true
-
+elseif isfile(ARGS[end]) == false
+    @error "The last argument is not a file containing the starting point x0"
 elseif length(ARGS) == 1
     if isfile(ARGS[1]) == true
         io = open(ARGS[1], "r")
@@ -90,7 +91,12 @@ elseif length(ARGS) == 2
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                         @warn "The value of the seed was not integer in the ARGS_FILE, it was rounded"
                     end
-                    global seed = Int(round(parse(Float64, splitLine[2])))
+                    val = Int(round(parse(Float64, splitLine[2])))
+                    if val == -1
+                        global seed = rand(RandomDevice(), Int64)
+                    else
+                        global seed = val
+                    end
                 elseif splitLine[1] == "continueEval"
                     if length(splitLine) == 3
                         global pathToContinueEvaljlFile = splitLine[2]
@@ -212,7 +218,12 @@ elseif length(ARGS) > 2
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                 @warn "The value of the seed was not integer in the ARGS_FILE, it was rounded"
             end
-            global seed = Int(round(parse(Float64, splitLine[2])))
+            val = Int(round(parse(Float64, splitLine[2])))
+            if val == -1
+                global seed = rand(RandomDevice(), Int64)
+            else
+                global seed = val
+            end
         elseif splitLine[1] == "continueEval"
             if length(splitLine) == 3
                 global pathToContinueEvaljlFile = splitLine[2]

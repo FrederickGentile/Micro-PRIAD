@@ -9,7 +9,7 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 * **`fidelity`**: A real number bounded between `0.0` and `1.0` that represents the accuracy of the final output relative to reality. For each increment of `0.0001` in fidelity, the black-box performs one additional Monte Carlo (MC) trial, up to a maximum of 10,000 trials when fidelity is set to `1.0`.
   * *Default value:* `1.0`
 
-* **`seed`**: An integer representing the random seed used for the Monte Carlo trials. Changing the seed will cause Micro-PRIAD to return different results due to varying random trial sequences.
+* **`seed`**: An integer representing the random seed used for the Monte Carlo trials. Changing the seed will cause Micro-PRIAD to return different results due to varying random trial sequences. By giving a seed of -1 to Micro-PRIAD, the value of the seed will be set at random.
   * *Default value:* `0`
 
 * **`PGinstance`**: An integer that can take the values `[1, 2, 3]` to select a specific problem PGinstance. This argument controls the type of electrical network configuration used inside the black-box, but it does not change the number of constraints or affect the input vector length.

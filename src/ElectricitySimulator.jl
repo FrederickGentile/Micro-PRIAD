@@ -42,7 +42,7 @@ function nhnisbcCalculatorLVL2(station::Station, name::String, ui, decal::Int64)
             i = nexti
         end
     end
-    nbHoureNotInServiceByCategories = [0.0 for i in 1:6]
+    nbHoureNotInServiceByCategories::Vector{Float64} = [0.0 for i in 1:6]
     for elem in nexti 
         time = (elem.ub - elem.lb) * nbHoursInAYear
         if time > 16
