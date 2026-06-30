@@ -270,17 +270,21 @@ function splitUnavailSimulator(nbEval::Int64, nbEquipments::Int64, nbStation::In
     hoursVec = interpretationOfUi(stations, allui, nbStation, subSampling, AnyParamForSubSamplingFunction, timer, clk)
     
     costDivider2 += length(hoursVec)
+
+    FFC[2] += maintenanceCost + failureCost 
+    single_MC_info[1] += maintenanceCost + failureCost                                   # S MC I
+
     for a in hoursVec
         single_MC_info[1] = 0.0
         single_MC_info[4] = 0.0
         single_MC_info[5] = 0.0
         for s in 1:nbStation
             CCC = riskModule(stations[s], a[(s-1)*6+1:(s-1)*6+6], nbVec)
-            FFC[2]  += CCC[1] + maintenanceCost + failureCost
+            FFC[2]  += CCC[1]
             FFC[10] += CCC[2] * C1_2_3_4_6_7_8_9multiplier^0.689
             FFC[11] += CCC[3] * C1_2_3_4_6_7_8_9multiplier^0.858
 
-            single_MC_info[1] += CCC[1] + maintenanceCost + failureCost                      # S MC I
+            single_MC_info[1] += CCC[1]                                                      # S MC I
             single_MC_info[4] += CCC[2] * C1_2_3_4_6_7_8_9multiplier^0.689                   # S MC I
             single_MC_info[5] += CCC[3] * C1_2_3_4_6_7_8_9multiplier^0.858                   # S MC I
         end
