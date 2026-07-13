@@ -53,7 +53,7 @@ end
 
 #=
 The "logTime" function is used to print the time required for a call of the black box, the time written in the file is 
-"time2Log" and it is written only if asked (loggingTime == true)
+"time2Log" and it is written only if asked (loggingTime != false)
 =#
 function logTime(time2Log, loggingTime)
     if loggingTime == "true"
@@ -82,7 +82,67 @@ function logTime(time2Log, loggingTime)
 end
 
 #=
-The "MicroPRIAD" function is the heart of the black box, it links the initialization, the unavailability simulator, the electric simulator and the risk module to take a maintenance  periodicity vector "x" and return the objective function value and the constraints values "FFC".
+The "logN" function is used to print the number of Monte Carlo trials required for a call of the black box, the number written in the file is 
+"N2Log" and it is written only if asked (loggingN != false)
+=#
+function logN(N2Log, loggingN)
+     if loggingN == "true"
+        dir = @__DIR__
+        splitDir = split(dir, "/") 
+        newSplitDir = Vector{SubString}(undef, length(splitDir) - 1)
+        for i in 1:(length(splitDir) - 1)
+            newSplitDir[i] = splitDir[i]
+        end
+        newDir = join(newSplitDir, "/")
+        io = open("$newDir/NLog.txt", "a")
+        write(io, "$N2Log\n")
+        close(io)
+    elseif loggingN == "false"
+    else
+        if loggingN[end] == "/"
+            io = open("$(loggingN)NLog.txt", "a")
+        elseif loggingN[end - 3:end] == ".txt"
+            io = open("$loggingN", "a")
+        else
+            io = open("$(loggingN)/NLog.txt", "a")
+        end
+        write(io, "$N2Log\n")
+        close(io)
+    end
+end
+
+#=
+The "logPhi" function is used to print the fidelity of the black box required for a call of the black box, the fidelity written in the file is 
+"phi2Log" and it is written only if asked (loggingPhi != false)
+=#
+function logPhi(phi2Log, loggingPhi)
+     if loggingPhi == "true"
+        dir = @__DIR__
+        splitDir = split(dir, "/") 
+        newSplitDir = Vector{SubString}(undef, length(splitDir) - 1)
+        for i in 1:(length(splitDir) - 1)
+            newSplitDir[i] = splitDir[i]
+        end
+        newDir = join(newSplitDir, "/")
+        io = open("$newDir/phiLog.txt", "a")
+        write(io, "$phi2Log\n")
+        close(io)
+    elseif loggingPhi == "false"
+    else
+        if loggingPhi[end] == "/"
+            io = open("$(loggingPhi)phiLog.txt", "a")
+        elseif loggingPhi[end - 3:end] == ".txt"
+            io = open("$loggingPhi", "a")
+        else
+            io = open("$(loggingPhi)/phiLog.txt", "a")
+        end
+        write(io, "$phi2Log\n")
+        close(io)
+    end
+end
+
+#=
+The "MicroPRIAD" function is the heart of the black box, it links the processing blocks to take a maintenance  periodicity vector "x" and return the objective function value and the constraints values "FFC".
 
 ######################################################## Input ###########################################################
 @Param ϕ: is the blackbox fidelity and is contained from 0 to 1.
@@ -145,7 +205,7 @@ for 28 inputs : for 15 inputs : for 13 inputs :
     FFC[11] : C9         : is a constraint that controls the amount of undelivered energy to hospitals over 40 years
 ###########################################################################################################################
 =#
-function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}; ϕ::Float64 = 1.0, seed::Int64 = 0, continueEval::Function = basicContinueEval, PGinstance::Int64 = 1, loggingTime::String = "false", eta::Int64 = 1000, halfTrialsReturn::Bool = true, N::Int64 = 10000, AnyParamForContinueEvalFunction = "", single_MC_info_return::Function = basic_single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction = "", subSampling::Function = basicSubSampling, AnyParamForSubSamplingFunction = "")                        
+function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}; ϕ::Float64 = 1.0, seed::Int64 = 0, continueEval::Function = basicContinueEval, PGinstance::Int64 = 1, loggingTime::String = "false", loggingN::String = "false", loggingPhi::String = "false", eta::Int64 = 1000, halfTrialsReturn::Bool = true, N::Int64 = 10000, AnyParamForContinueEvalFunction = "", single_MC_info_return::Function = basic_single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction = "", subSampling::Function = basicSubSampling, AnyParamForSubSamplingFunction = "")                        
     timer = 0.0
     clk = time()
 
@@ -266,8 +326,12 @@ function MicroPRIAD(input::Union{Vector{Float64}, Vector{Int64}, String}; ϕ::Fl
     FFCT = UnavailSimulator(FFC, stations, ϕ, x, seed, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, PGinstance, nbVec, eta, halfTrialsReturn, N, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)   
 
     FFC = FFCT[1:11]
-    timer = FFCT[12]           
+    timer = FFCT[12]
+    N = FFCT[13]
+    ϕ = FFCT[14]           
     logTime(timer, loggingTime)
+    logN(N, loggingN)
+    logPhi(ϕ, loggingPhi)
 
     #uncomment the one you need
     #return FFC             # return a vector [count_eval, f, [C]]

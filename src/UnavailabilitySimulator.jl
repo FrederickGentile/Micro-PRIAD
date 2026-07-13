@@ -326,14 +326,14 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
     FFC[8:11] = [0.0, 0.0, 0.0, 0.0]
     FFCT = splitUnavailSimulator(1, nbEquipments, nbStation, stations, FFC, 1/N, 1, 0, continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, PGinstance, nbVec, halfTrialsReturn, N, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)
     if FFCT[13] == Inf64
-        return FFCT[1:12]
+        return vcat(FFCT[1:12], 1, 1/N)
     end
     ########## intermediate return ############ 
     timer += time() - clk
     modFFCT = intermidiateReturn(FFCT, 1, FFCT[14], timer)
     ϕVec = [1/N for i in 1:10]
     if continueEval(ϕVec, modFFCT[2:11], AnyParamForContinueEvalFunction) == false
-        return modFFCT[1:12]
+        return vcat(modFFCT[1:12], 1, 1/N)
     end
     clk = time()
     ############################################
@@ -344,12 +344,12 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
                 FFCT = splitUnavailSimulator((eta - 1), nbEquipments, nbStation, stations, FFC, eta/N, 1 * eta, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, PGinstance, nbVec, halfTrialsReturn, N, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)
 
                 if FFCT[13] == Inf64
-                    return FFCT[1:12]
+                    return vcat(FFCT[1:12], eta, eta/N)
                 end
             else
                 FFCT = splitUnavailSimulator(eta, nbEquipments, nbStation, stations, FFC, r * eta/N, r * eta, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, PGinstance, nbVec, halfTrialsReturn, N, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)
                 if FFCT[13] == Inf64
-                    return FFCT[1:12]
+                    return vcat(FFCT[1:12], r * eta, r * eta/N)
                 end
             end
             ######### intermediate return ############
@@ -358,7 +358,7 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
             modFFCT = intermidiateReturn(FFCT, eta * r, FFCT[14], timer)
             ϕVec = [r * eta/N for i in 1:10]
             if continueEval(ϕVec, modFFCT[2:11], AnyParamForContinueEvalFunction) == false
-                return modFFCT[1:12]
+                return vcat(modFFCT[1:12], r * eta, r * eta/N)
             end
             clk = time()
             ############################################
@@ -374,14 +374,14 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
             FFCT = splitUnavailSimulator((nbEval - eta * nbReturn), nbEquipments, nbStation, stations, FFC, ϕ, eta * nbReturn, FFCT[14], continueEval, timer, clk, C1_2_3_4_6_7_8_9multiplier, PGinstance, nbVec, halfTrialsReturn, N, AnyParamForContinueEvalFunction, single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction, subSampling, AnyParamForSubSamplingFunction)    
         end
         if FFCT[13] == Inf64
-            return FFCT[1:12]
+            return vcat(FFCT[1:12], nbEval, ϕ)
         end
         ######## intermediate return ############
         timer += time() - clk
         modFFCT = intermidiateReturn(FFCT, nbEval, FFCT[14], timer)
         ϕVec = [ϕ for i in 1:10]
         if continueEval(ϕVec, modFFCT[2:11], AnyParamForContinueEvalFunction) ==  false 
-            return modFFCT[1:12]
+            return vcat(modFFCT[1:12], nbEval, ϕ)
         end
         clk = time()
         ############################################
@@ -390,7 +390,7 @@ function UnavailSimulator(FFC::Vector{Float64}, stations::Vector{Station}, ϕ::F
     ############# return ################
     timer += time() - clk
     FFCT = intermidiateReturn(FFCT, nbEval, FFCT[14], timer)
-    return FFCT[1:12]
+    return vcat(FFCT[1:12], nbEval, ϕ)
     #####################################
 end
 

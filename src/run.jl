@@ -14,7 +14,7 @@ end
 function findallParam(vec)
     arr::Vector{Int64} = []
     for i in 1:length(vec)
-        if (vec[i] ==  "-PGinstance" || vec[i] == "-fidelity" || vec[i] == "-seed" || vec[i] == "-continueEval" || vec[i] == "-AnyParamForContinueEvalFunction" || vec[i] == "-loggingTime" || vec[i] == "-eta" || vec[i] == "-halfTrialsReturn" || vec[i] == "-N" || vec[i] == "-single_MC_info_return")
+        if (vec[i] ==  "-PGinstance" || vec[i] == "-fidelity" || vec[i] == "-seed" || vec[i] == "-continueEval" || vec[i] == "-AnyParamForContinueEvalFunction" || vec[i] == "-loggingTime" || vec[i] == "-loggingN" || vec[i] == "-loggingPhi" || vec[i] == "-eta" || vec[i] == "-halfTrialsReturn" || vec[i] == "-N" || vec[i] == "-single_MC_info_return")
             push!(arr, i)
         end   
     end
@@ -30,6 +30,8 @@ end
 #==# AnyParamForContinueEvalFunction = ""                                                                            #==#
 #==# PGinstance = 1                                                                                                  #==#
 #==# loggingTime = "false"                                                                                           #==#
+#==# loggingN = "false"                                                                                              #==#
+#==# loggingPhi = "false"                                                                                            #==#
 #==# eta = 1000                                                                                                      #==#
 #==# halfTrialsReturn = true                                                                                         #==#
 #==# N = 10000                                                                                                       #==#
@@ -59,7 +61,7 @@ elseif length(ARGS) == 1
             input[i] = parse(Float64, splitLine[i])
         end
 
-        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
+        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), loggingN=String(loggingN), loggingPhi=String(loggingPhi), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -128,6 +130,24 @@ elseif length(ARGS) == 2
                     else
                         global loggingTime = "false"
                         @warn "The value entered for the loggingTime argument was not of a type asked, it was considered as \"false\""
+                    end                
+                elseif splitLine[1] == "loggingN"
+                    if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
+                        global loggingN = "$(parse(Bool, splitLine[2]))"
+                    elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
+                        global loggingN = splitLine[2]
+                    else
+                        global loggingN = "false"
+                        @warn "The value entered for the loggingN argument was not of a type asked, it was considered as \"false\""
+                    end                
+                elseif splitLine[1] == "loggingPhi"
+                    if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
+                        global loggingPhi = "$(parse(Bool, splitLine[2]))"
+                    elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
+                        global loggingPhi = splitLine[2]
+                    else
+                        global loggingPhi = "false"
+                        @warn "The value entered for the loggingPhi argument was not of a type asked, it was considered as \"false\""
                     end
                 elseif splitLine[1] == "eta"
                     if parse(Float64, splitLine[2]) % 1 > 10^(-20)
@@ -184,7 +204,7 @@ elseif length(ARGS) == 2
         subSampling_symbol = Symbol(subSampling_name)
         subSampling = getfield(Main, subSampling_symbol)
 
-        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
+        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), loggingN=String(loggingN), loggingPhi=String(loggingPhi), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
@@ -256,6 +276,24 @@ elseif length(ARGS) > 2
                 global loggingTime = "false"
                 @warn "The value entered for the loggingTime argument was not of a type asked, it was considered as \"false\""
             end
+        elseif splitLine[1] == "loggingN"
+            if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
+                global loggingN = "$(parse(Bool, splitLine[2]))"
+            elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
+                global loggingN = splitLine[2]
+            else
+                global loggingN = "false"
+                @warn "The value entered for the loggingN argument was not of a type asked, it was considered as \"false\""
+            end                
+        elseif splitLine[1] == "loggingPhi"
+            if splitLine[2] == "1" || splitLine[2] == "0" || splitLine[2] == "true" || splitLine[2] == "false" 
+                global loggingPhi = "$(parse(Bool, splitLine[2]))"
+            elseif contains(splitLine[2], ".txt") || contains(splitLine[2], "/") || contains(splitLine[2], "\\")
+                global loggingPhi = splitLine[2]
+            else
+                global loggingPhi = "false"
+                @warn "The value entered for the loggingPhi argument was not of a type asked, it was considered as \"false\""
+            end
         elseif splitLine[1] == "eta"
             if parse(Float64, splitLine[2]) % 1 > 10^(-20)
                 @warn "The value of eta was not integer in the ARGS_FILE, it was rounded"
@@ -311,7 +349,7 @@ elseif length(ARGS) > 2
         subSampling_symbol = Symbol(subSampling_name)
         subSampling = getfield(Main, subSampling_symbol)
 
-        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
+        println(MicroPRIAD(input, ϕ=ϕ, seed=seed, continueEval=continueEval, PGinstance=PGinstance, loggingTime=String(loggingTime), loggingN=String(loggingN), loggingPhi=String(loggingPhi), eta=eta, halfTrialsReturn=halfTrialsReturn, N=N, AnyParamForContinueEvalFunction=AnyParamForContinueEvalFunction, single_MC_info_return=single_MC_info_return, AnyParamForSingle_MC_Info_ReturnFunction=AnyParamForSingle_MC_Info_ReturnFunction, subSampling=subSampling, AnyParamForSubSamplingFunction=AnyParamForSubSamplingFunction))
         global needHelp = false
     else
         global needHelp = true
