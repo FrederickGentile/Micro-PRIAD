@@ -15,7 +15,13 @@ The different arguments that Micro-PRIAD can take as input can be provided throu
 * **`PGinstance`**: An integer that can take the values `[1, 2, 3]` to select a specific problem PGinstance. This argument controls the type of electrical network configuration used inside the black-box, but it does not change the number of constraints or affect the input vector length.
   * *Default value:* `1`
 
-* **`loggingTime`**: A parameter used for benchmarking. If set to `"false"`, time logging is deactivated. If set to a specific file path, it will create a time-log file where each line records the exact execution time of a single iteration.
+* **`loggingTime`**: A parameter used for benchmarking. If set to `"false"`, time logging is deactivated. If set to a specific file path, it will create a time-log file where each line records the exact execution time of a single evaluation.
+  * *Default value:* `"false"`* 
+  
+* **`loggingN`**: A parameter used for benchmarking. If set to `"false"`, M.C. trials logging is deactivated. If set to a specific file path, it will create a N-log file where each line records the exact number of M.C. trials done to do a single evaluation.
+  * *Default value:* `"false"`* 
+  
+* **`loggingPhi`**: A parameter used for benchmarking. If set to `"false"`, Phi logging is deactivated. If set to a specific file path, it will create a Phi-log file where each line records the fidelity at witch a given evaluation was done, it take the highest fidelity among output if different.
   * *Default value:* `"false"`
 
 * **`continueEval`**: A parameter (function) that indicate if and how intermediary ouput are handled. This function intercepts intermediate objective function values and constraint metrics at specific fidelity levels to decide whether to early-terminate the black-box iteration or let it run to completion. It is triggered frequently at various fidelity milestones. In the `ARGS.txt` file, you must specify both the path to the `.jl` file and the specific name of the Julia function. 
